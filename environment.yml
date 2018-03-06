@@ -1,0 +1,11 @@
+name: hello_world
+channels:
+  - defaults
+dependencies:
+  - matplotlib
+  - numpy
+  - pandas
+  - nose
+  - jupyter
+  - seaborn
+  - tqdm

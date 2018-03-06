@@ -1,0 +1,19 @@
+# AWS configuration
+# https://stackoverflow.com/questions/11286479/recommended-way-to-manage-credentials-with-multiple-aws-accounts
+export AWS_PROFILE=hello_world
+
+# Terraform configuration
+export TF_VAR_aws_account_id=217293619454
+# If using a region different from "us-west-1", be aware certain links in the README to AWS services are linking
+# to service dashboards in the "us-west-1" region
+export TF_VAR_aws_region=us-west-1
+export TF_VAR_prod_db_password=tuba-flower-earthen-whale
+export TF_VAR_repo_dir=/Users/shanekeller/Documents/aws-terraform-bootstrap
+export TF_VAR_rds_host="terraform-21111101231450534560000001.cqzlzpcvfiqi.us-west-1.rds.amazonaws.com"
+export TF_VAR_storage_type=csv
+
+# "hello_world" lambda configuration
+export STORAGE_TYPE=csv
+export LOCAL_DB_PASSWORD="archeological unhinge hormone rote"
+export S3_BUCKET="hello-world-wvshijklrqp"
+export WRITE_TO_AWS=True

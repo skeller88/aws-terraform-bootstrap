@@ -1,0 +1,6 @@
+boto3
+nose
+pg8000
+SQLAlchemy
+smart_open
+requests
