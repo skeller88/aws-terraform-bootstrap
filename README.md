@@ -19,21 +19,32 @@ In addition, this repo helps you configure the following tools in your local env
 At the end of this README, you will have done the following:
 * deployed an app on AWS with Terraform
 * set up the app to run locally
-* set up your local machine to ssh into an EC2 [bastion host,](https://www.techopedia.com/definition/6157/bastion-host)and connect to a RDS instance via psql. 
+* set up your local machine to ssh into an EC2 [bastion host](https://www.techopedia.com/definition/6157/bastion-host), and connect to a RDS instance via psql. 
 
 ## Motivations
 There are many blog posts, github repos, stack overflow posts, and AWS documentation that explain parts of how to build 
-and deploy AWS infrastructure, but no repo I've found that puts all of the necessary concepts together and makes it 
-quick and easy to set up an app on AWS and locally. A first time AWS user spends too much time reinventing the 
+and deploy AWS infrastructure with Terraform, but no repo I've found that puts all of the concepts I wanted together and makes it 
+quick and easy to set up an app on AWS and locally. I spent too much time reinventing the 
 wheel and doing DevOps work. This repo automates as much of that work as possible and provides clear documentation for 
 the rest of it.
 
-## Why not just use serverless/apex?
-Those tools look very powerful and useful. Before learning those tools, however, I wanted to get more lower level experience
-with cloud computing devops. Other developers will feel the same. 
+## Why not just use a serverless framework?
+[Cloud Formation](https://aws.amazon.com/cloudformation/) is AWS's framework for deploying serverless architectures. 
+Like Terraform, it enables developers to write infrastructure as code. In addition, it abstracts away devops tasks such 
+as lambda packaging, deployment, and monitoring. [Apex](https://github.com/apex/apex) is TJ Holowaychuk's version of CF
+with 5500 users and counting as of March 4 2018. 
+ 
+[Serverless](https://serverless.com/) is another framework that offers similar functionality, and abstracts away the
+cloud provider to make an app built on top of it cloud provider independent.
+
+I plan on learning a serverless framework in the future, but before learning those tools, I wanted to get more lower 
+level experience with cloud computing devops. With that lower level experience, I am better equipped to understand
+the components of cloud architectures, debug production issues, and understand the tradeoffs of the various severless
+frameworks. Also, I wanted to learn an open source infrastructure as code framework, and Terraform is a leader in that space.
 
 # Table of Contents
 [Local Setup](#local-setup)  
+[Set up Python environment](##set-up-python-environment)
 [AWS Setup](#aws-setup)  
 
 # Local setup 
@@ -95,7 +106,7 @@ Using the Terminal, login to Postgres via superuser:
 
 `psql`
  
-and create a role, <username>
+and create a role, <username>. `hellorole` is the production database role, FYI. 
 ```
 CREATE ROLE <username> WITH PASSWORD '<password>';
 ALTER ROLE <username> CREATEDB; 
@@ -219,7 +230,7 @@ In one terminal window, create the ssh tunnel:
 `ssh -L 8000:<rds-host-address>:5432 -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
 
 Then in another window, connect to the RDS instance:
-`psql --dbname=hello_world --user=helloworld --host=localhost --port=8000` 
+`psql --dbname=hello_world --user=hellorole --host=localhost --port=8000` 
 
 
 ## Destroy infrastructure with Terraform
