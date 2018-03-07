@@ -1,29 +1,36 @@
 Table of Contents
 =================
+
    * [Table of Contents](#table-of-contents)
-      * [Overview](#overview)
-      * [Motivations](#motivations)
-      * [Why not just use a serverless framework?](#why-not-just-use-a-serverless-framework)
+   * [Overview](#overview)
+   * [Motivations](#motivations)
+   * [Why not just use a serverless framework?](#why-not-just-use-a-serverless-framework)
    * [Local setup](#local-setup)
-      * [Set up Python environment](#set-up-python-environment)
-      * [Optional - Set up Python environment for ipython notebooks](#optional---set-up-python-environment-for-ipython-notebooks)
-      * [Set up Pycharm](#set-up-pycharm)
-      * [Set environment variables:](#set-environment-variables)
+      * [Repo](#repo)
+      * [Python environment](#python-environment)
+         * [Optional: Ipython notebooks](#optional-ipython-notebooks)
+         * [Optional: Pycharm](#optional-pycharm)
+      * [Environment variables](#environment-variables)
       * [PostgreSQL](#postgresql)
    * [AWS setup](#aws-setup)
-      * [Set up AWS credentials](#set-up-aws-credentials)
-      * [Setup Terraform and AWS credentials for Terraform](#setup-terraform-and-aws-credentials-for-terraform)
-      * [Create and configure key pair](#create-and-configure-key-pair)
-      * [Add app secrets to AWS Parameter Store](#add-app-secrets-to-aws-parameter-store)
-      * [Package AWS lambda and deploy Terraform infrastructure](#package-aws-lambda-and-deploy-terraform-infrastructure)
-      * [Add your local IP address to the allowed IP addresses of the VPC](#add-your-local-ip-address-to-the-allowed-ip-addresses-of-the-vpc)
-      * [ssh to bastion host](#ssh-to-bastion-host)
-      * [Create ssh tunnel to RDS instance](#create-ssh-tunnel-to-rds-instance)
-      * [Destroy infrastructure with Terraform](#destroy-infrastructure-with-terraform)
-   * [Future work](#future-work) 
+      * [IAMs](#iams)
+         * [App IAM user](#app-iam-user)
+         * [Terraform IAM user](#terraform-iam-user)
+      * [Boto](#boto)
+      * [Key pair](#key-pair)
+      * [AWS Parameter Store](#aws-parameter-store)
+      * [Remote access via bastion host](#remote-access-via-bastion-host)
+         * [Add your local IP address to the allowed IP addresses of the VPC](#add-your-local-ip-address-to-the-allowed-ip-addresses-of-the-vpc)
+         * [ssh to bastion host](#ssh-to-bastion-host)
+         * [Create ssh tunnel to RDS instance](#create-ssh-tunnel-to-rds-instance)
+   * [Package AWS lambda and deploy infrastructure with Terraform](#package-aws-lambda-and-deploy-infrastructure-with-terraform)
+   * [Destroy infrastructure with Terraform](#destroy-infrastructure-with-terraform)
+   * [Future work](#future-work)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) 
   
 
-## Overview
+# Overview
 Bootstrap AWS infrastructure on top of Terraform and run a "hello_world" Python 3 app that uses the following AWS services:
 * [Lambda](https://aws.amazon.com/lambda/) - cloud functions
 * [VPC](https://aws.amazon.com/vpc/) - private network
@@ -44,21 +51,20 @@ At the end of this README, you will have done the following:
 * set up the app to run locally
 * set up your local machine to ssh into an EC2 [bastion host](https://www.techopedia.com/definition/6157/bastion-host), and connect to a RDS instance via psql. 
 
-## Motivations
+# Motivations
 There are many blog posts, github repos, stack overflow posts, and AWS documentation that explain parts of how to build 
 and deploy AWS infrastructure with Terraform, but no repo I've found that puts all of the concepts I wanted together and makes it 
 quick and easy to set up an app on AWS and locally. I spent too much time reinventing the 
 wheel and doing DevOps work. This repo automates as much of that work as possible and provides clear documentation for 
 the rest of it.
 
-## Why not just use a serverless framework?
+# Why not just use a serverless framework?
 [Cloud Formation](https://aws.amazon.com/cloudformation/) is AWS's framework for deploying serverless architectures. 
-Like Terraform, it enables developers to write infrastructure as code. In addition, it abstracts away devops tasks such 
-as lambda packaging, deployment, and monitoring. [Apex](https://github.com/apex/apex) is TJ Holowaychuk's version of CF
-with 5500 users and counting as of March 4 2018. 
+Like Terraform, it enables developers to write infrastructure as code. In addition, it abstracts away DevOps tasks such 
+as lambda packaging, deployment, and monitoring. [Apex](https://github.com/apex/apex) is [TJ Holowaychuk's](https://medium.com/@tjholowaychuk) version of CF.
  
-[Serverless](https://serverless.com/) is another framework that offers similar functionality, and abstracts away the
-cloud provider to make an app built on top of it cloud provider independent.
+[Serverless](https://serverless.com/) is another framework that offers similar functionality, as well as support for 
+other cloud providers.
 
 I plan on learning a serverless framework in the future, but before learning those tools, I wanted to get more lower 
 level experience with cloud computing devops. With that lower level experience, I am better equipped to understand
@@ -66,8 +72,10 @@ the components of cloud architectures, debug production issues, and understand t
 frameworks. Also, I wanted to learn an open source infrastructure as code framework, and Terraform is a leader in that space.
 
 # Local setup 
+## Repo
+`git clone https://github.com/skeller88/aws-terraform-bootstrap.git`
 
-## Set up Python environment
+## Python environment
 Virtual environments keep the app environment isolated from the OS environment. 
 
 ```
@@ -90,7 +98,7 @@ source venv/bin/activate
 Install dependencies
 `pip install -r requirements.txt`
 
-## Optional - Set up Python environment for ipython notebooks
+### Optional: Ipython notebooks
 Due to ipython requiring different dependencies from the app, a separate environment is configured via an environment.yml
 file. 
 
@@ -102,15 +110,22 @@ file.
 
 Start the Anaconda application and select the "hello_world" environment.
 
-## Set up Pycharm
+### Optional: Pycharm
 Set the python binary in the `venv` virtual environment [as the project interpreter](https://www.jetbrains.com/help/pycharm/configuring-python-interpreter.html#local-interpreter). 
+
+Set any environment variables via the "hello_world.py" [run configuration](https://www.jetbrains.com/help/pycharm/run-debug-configuration-python.html).
 
 [Set NoseTests as the test runner](https://www.jetbrains.com/help/pycharm/python-integrated-tools.html) so 
 that tests can be run from Pycharm. 
 
-## Set environment variables:
+## Environment variables
+Environment variables are used to run the app locally, and also to populate Terraform variables used for app deployment. 
+See the [Terraform documentation](https://www.terraform.io/docs/configuration/variables.html#environment-variables)
+for information on how this process works. 
+
 Copy the environment variables in `.bash_profile.sample` to the local `~/.bash_profile` file, and modify them with the proper
-values for the local environment. Make sure the file is not committed to version control so the secrets are safe. 
+values for the local environment. Make sure the file is not committed to version control so the secrets are safe.
+
 
 Look at the "environment.variables" property of the lambda configurations in terraform/lambda.tf for an understanding of the 
 variables used in production. Parameter store is used to populate other env variables not seen in the
@@ -142,8 +157,9 @@ a more detailed explanation of the process. In order to perform additional actio
 permissions for the role may be needed.
 
 # AWS setup
-## Set up AWS credentials
-Do not use your default/admin AWS credentials, because that user has root access, and using API keys for that user in the app
+## IAMs
+### App IAM user
+This user is useful to run the app locally. Do not use your default/admin AWS credentials, because that user has root access, and using API keys for that user in the app
 makes it more likely that the keys will be compromised. Instead, [create an IAM user with more limited permissions for the app](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html).
 The user should have the following policies attached:
 - AmazonEC2FullAccess
@@ -171,6 +187,29 @@ and the user should also have the following inline policy, which gives it the ab
 }
 ```
 
+### Terraform IAM user
+[Set up Terraform](https://www.terraform.io/intro/getting-started/install.html)
+
+[Create a Terraform IAM user](https://console.aws.amazon.com/iam/home?region=us-west-1#/users), which provides Terraform 
+with access to AWS resources, but not root access, which can be abused. The Terraform user should have the same policies
+attached as the app user. Note that the Terraform IAM user could be used instead of the app IAM user, but this author's
+opinion is that it's best to have clear separation of responsibilities across IAMs. 
+
+Add the secret and key created for the Terraform IAM user to the `~/.aws/credentials` file:
+```
+[terraform]
+aws_access_key_id = <terraform-access-key-id>
+aws_secret_access_key = <terraform-admin-access-secret>
+```
+
+Initialize Terraform
+
+```
+cd terraform
+terraform init
+```
+
+## Boto
 [Set up boto](http://boto3.readthedocs.io/en/latest/guide/configuration.html) by creating a `~/.aws/credentials` file
 with the following format:
 ```
@@ -186,28 +225,7 @@ Export the following environment variable so boto knows which credentials to use
 
 `EXPORT AWS_PROFILE=hello_world`
 
-## Setup Terraform and AWS credentials for Terraform
-[Set up Terraform](https://www.terraform.io/intro/getting-started/install.html)
-
-[Create a Terraform IAM user](https://console.aws.amazon.com/iam/home?region=us-west-1#/users), which provides Terraform 
-with access to AWS resources, but not root access, which can be abused. The Terraform user should have the same policies
-attached as the app user.
-
-Add the Terraform secret and key created for the IAM user to the `~/.aws/credentials` file:
-```
-[terraform]
-aws_access_key_id = <terraform-access-key-id>
-aws_secret_access_key = <terraform-admin-access-secret>
-```
-
-Initialize Terraform
-
-```
-cd terraform
-terraform init
-```
-
-## Create and configure key pair
+## Key pair
 A key pair is needed in order to ssh into the bastion host from a local machine. Create a new key pair named 
 "bastion_host"  via the [AWS console](https://us-west-1.console.aws.amazon.com/ec2/v2/home?region=us-west-1#KeyPairs:sort=keyName) and the .pem file
 containing the private key will automatically be saved. Change the permissions of the .pem file to make sure that your private key file isn't publicly viewable:
@@ -216,28 +234,25 @@ containing the private key will automatically be saved. Change the permissions o
 
 Move the .pem file to the `~/.aws` folder. AWS has [a more detailed explanation of key pairs.](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#retrieving-the-public-key)
 
-## Add app secrets to AWS Parameter Store
+## AWS Parameter Store
 Create a dummy app secret; any string will do. 
 
 Go to the [parameter store console](https://us-west-1.console.aws.amazon.com/systems-manager/parameters/) and add a new 
 parameter with the name 'secret'. Save it as a "SecureString". 
 
-## Package AWS lambda and deploy Terraform infrastructure
-Run `terraform apply` to build the terraform infrastructure. 
+## Remote access via bastion host
 
-`deploy_lambda.sh hello_world` builds a zipfile for the lambda function and runs `terraform apply`
-
-## Add your local IP address to the allowed IP addresses of the VPC
+### Add your local IP address to the allowed IP addresses of the VPC
 An AWS help desk recommended way to enable access to the bastion host from your local machine is to go to
 [the VPC console](https://us-west-1.console.aws.amazon.com/vpc/home?region=us-west-1#vpcs) and add a CIDR block containing your IP
 address to the VPC settings. 
 
-## ssh to bastion host
+### ssh to bastion host
 Before ssh'ing to the RDS instance, try ssh'ing to the bastion host. 
 `bastion_ec2_public_address` is output to the terminal by Terraform. Copy it and modify the script below:
 `ssh -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
 
-## Create ssh tunnel to RDS instance
+### Create ssh tunnel to RDS instance
 [detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
 
 After `terraform apply` runs in the terminal, the id of the bastion ec2 instance will be printed to sdout. Copy and
@@ -250,9 +265,13 @@ In one terminal window, create the ssh tunnel:
 Then in another window, connect to the RDS instance:
 `psql --dbname=hello_world --user=hellorole --host=localhost --port=8000` 
 
+# Package AWS lambda and deploy infrastructure with Terraform
+Run `terraform apply` to build the terraform infrastructure. 
 
-## Destroy infrastructure with Terraform
-[Terraform documentation on destroy](https://www.terraform.io/intro/getting-started/destroy.html)
+`deploy_lambda.sh hello_world` builds a zipfile for the lambda function and runs `terraform apply`
+
+# Destroy infrastructure with Terraform
+It's easy to remove all of the infrastructure deployed via Terraform with a single command, ["terraform destroy"](https://www.terraform.io/intro/getting-started/destroy.html).
 
 # Future work 
 Contributions to this repo are welcome. Future work can include:
@@ -266,3 +285,4 @@ there's only one NAT in one AZ.
 - Use [Terraform Vault](https://www.terraform.io/docs/providers/vault/index.html) to store secrets and passwords instead of a local .bash_profile file. 
 - Microservices.
 - "hello_world" versions of other AWS services such as Kinesis, SQS, and Dynamo. 
+- Implementations in a serverless framework, other languages such as Java and Go, and other cloud providers such as Google Cloud Platform.  
