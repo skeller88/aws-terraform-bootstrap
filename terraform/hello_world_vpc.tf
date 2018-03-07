@@ -77,6 +77,18 @@ resource "aws_subnet" "hello_world_public_west_1a" {
   vpc_id     = "${aws_vpc.hello_world.id}"
 }
 
+resource "aws_subnet" "hello_world_public_west_1b" {
+  availability_zone = "us-west-1b"
+
+  tags {
+    Project = "hello-world"
+    Name    = "public us-west-1b subnet"
+  }
+
+  cidr_block = "10.0.3.0/24"
+  vpc_id     = "${aws_vpc.hello_world.id}"
+}
+
 output "default_vpc_id" {
   value = "${aws_vpc.hello_world.id}"
 }

@@ -21,13 +21,13 @@ resource "aws_route_table" "hello_world_private_west_1b_subnet_route_table" {
 resource "aws_route" "private_route_west_1a" {
   route_table_id         = "${aws_route_table.hello_world_private_west_1a_subnet_route_table.id}"
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = "${aws_nat_gateway.hello_world_private_west_1.id}"
+  nat_gateway_id         = "${aws_nat_gateway.hello_world_private_west_1a.id}"
 }
 
 resource "aws_route" "private_route_west_1b" {
   route_table_id         = "${aws_route_table.hello_world_private_west_1b_subnet_route_table.id}"
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = "${aws_nat_gateway.hello_world_private_west_1.id}"
+  nat_gateway_id         = "${aws_nat_gateway.hello_world_private_west_1b.id}"
 }
 
 resource "aws_route_table" "hello_world_public_subnet_route_table" {

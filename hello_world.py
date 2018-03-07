@@ -12,20 +12,25 @@ from src.storage.s3 import write_result
 from src.storage.sql_alchemy_dtos.base import Base
 from src.storage.sql_alchemy_engine import SqlAlchemyEngine
 
+fake_json_endpoint = 'https://jsonplaceholder.typicode.com/posts/1'
 
 def main(event, context):
     secret = get_parameter('secret')
     print('fetched secret from SSM Parameter Store')
+
+    response = requests.get(fake_json_endpoint).json()
+    print('fetched data from the internet:', response)
+
     random_message = ''.join(random.choice(string.ascii_lowercase) for num in range(10))
 
     message_data = [
         [datetime.datetime.utcnow().timestamp(), random_message]
     ]
     if Properties.storage_type == 'csv':
-        print("csv")
+        print("storage_type is 'csv'")
         write_result(Properties.write_to_aws, Properties.s3_bucket, message_data)
     elif Properties.storage_type == 'postgres':
-        print("postgres")
+        print("storage_type is 'postgres'")
         engine = SqlAlchemyEngine.rds_engine() if Properties.write_to_aws else SqlAlchemyEngine.local_engine_maker()
         Base.metadata.create_all(engine.db_client)
         session = engine.scoped_session_maker()
@@ -36,6 +41,7 @@ def main(event, context):
 
     return {
         'message': random_message,
+        'response': response,
         'secret': secret
     }
 

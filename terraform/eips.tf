@@ -3,7 +3,11 @@ resource "aws_eip" "bastion" {
   vpc      = true
 }
 
-resource "aws_eip" "hello_world_private_west_1" {
+resource "aws_eip" "hello_world_private_west_1a" {
+  vpc = true
+}
+
+resource "aws_eip" "hello_world_private_west_1b" {
   vpc = true
 }
 

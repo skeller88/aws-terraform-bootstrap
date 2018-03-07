@@ -12,12 +12,13 @@ Table of Contents
          * [Optional: Pycharm](#optional-pycharm)
       * [Environment variables](#environment-variables)
       * [PostgreSQL](#postgresql)
+      * [Testing](#testing)
    * [AWS setup](#aws-setup)
       * [IAMs](#iams)
          * [App IAM user](#app-iam-user)
          * [Terraform IAM user](#terraform-iam-user)
       * [Boto](#boto)
-      * [Key pair](#key-pair)
+      * [EC2 key pair](#ec2-key-pair)
       * [AWS Parameter Store](#aws-parameter-store)
       * [Remote access via bastion host](#remote-access-via-bastion-host)
          * [Add your local IP address to the allowed IP addresses of the VPC](#add-your-local-ip-address-to-the-allowed-ip-addresses-of-the-vpc)
@@ -26,6 +27,8 @@ Table of Contents
    * [Package AWS lambda and deploy infrastructure with Terraform](#package-aws-lambda-and-deploy-infrastructure-with-terraform)
    * [Destroy infrastructure with Terraform](#destroy-infrastructure-with-terraform)
    * [Future work](#future-work)
+     * [Planned](#planned)
+     * [Backlog](#backlog)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) 
   
@@ -37,6 +40,8 @@ Bootstrap AWS infrastructure on top of Terraform and run a "hello_world" Python 
 * [S3](https://aws.amazon.com/s3/) - cloud file storage
 * [RDS](https://aws.amazon.com/rds/) - cloud SQL database
 * [Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html) - cloud storage for secrets
+
+![Architecture Diagram](architecture_diagram.jpg?raw=true)
 
 In addition, this repo helps you configure the following tools in your local environment:
 * Postgres - SQL database
@@ -70,6 +75,15 @@ I plan on learning a serverless framework in the future, but before learning tho
 level experience with cloud computing devops. With that lower level experience, I am better equipped to understand
 the components of cloud architectures, debug production issues, and understand the tradeoffs of the various severless
 frameworks. Also, I wanted to learn an open source infrastructure as code framework, and Terraform is a leader in that space.
+
+# Architecture clarifications
+The above architecture diagram shows that the app is deployed in two private subnets and two public subnets across two
+availability zones, one public and one private subnet per availability zone (AZ). The RDS instance is shown in one subnet 
+only because it's a single AZ deployment. Multi-AZ deployments are higher cost, and unnecessary for a bootstrap app
+like this one. It's easy to configure though if an app needs that increased uptime. 
+
+The lambda is shown in both private subnets because it can be run in either subnet. If one is available and one is down,
+for example, the lambda will be run in the subnet that is up.
 
 # Local setup 
 ## Repo
@@ -156,6 +170,10 @@ psql -U <username> -d hello_world
 a more detailed explanation of the process. In order to perform additional actions from the command line, further
 permissions for the role may be needed.
 
+## Testing
+Nosetests is the testing framework used. A dummy test suite should show you the gist of how Nosetests works. Run tests 
+in the `tests` folder via the command line or via Pycharm.
+
 # AWS setup
 ## IAMs
 ### App IAM user
@@ -225,7 +243,7 @@ Export the following environment variable so boto knows which credentials to use
 
 `EXPORT AWS_PROFILE=hello_world`
 
-## Key pair
+## EC2 Key pair
 A key pair is needed in order to ssh into the bastion host from a local machine. [Create a new key pair](https://us-west-1.console.aws.amazon.com/ec2/v2/home?region=us-west-1#KeyPairs:sort=keyName) named 
 "bastion_host"  via the AWS console and the .pem file
 containing the private key will automatically be saved. Change the permissions of the .pem file to make sure that your private key file isn't publicly viewable:
@@ -274,15 +292,33 @@ Run `terraform apply` to build the terraform infrastructure, and `terraform fmt`
 It's easy to remove all of the infrastructure deployed via Terraform with a single command, ["terraform destroy"](https://www.terraform.io/intro/getting-started/destroy.html).
 
 # Future work 
-Contributions to this repo are welcome. Future work can include:
-- A hello_world Docker app, deployed in an ECS cluster.
-- CI and CD process.
-- Logging, monitoring, alerting via AWS or some third party tool.
-- At a certain size, lambda deployment packages have to be uploaded to a S3 bucket before deployment. Add support for that. 
-- Increase the availability of the architecture by adding duplicate services to additional availability zones. For example,
-there's only one NAT in one AZ. 
-- Ansible script to automate local setup, such as creation of postgres user and database.
-- Use [Terraform Vault](https://www.terraform.io/docs/providers/vault/index.html) to store secrets and passwords instead of a local .bash_profile file. 
-- Microservices.
-- "hello_world" versions of other AWS services such as Kinesis, SQS, and Dynamo. 
-- Implementations in a serverless framework, other languages such as Java and Go, and other cloud providers such as Google Cloud Platform.  
+Contributions to this repo are welcome. 
+
+## Planned
+A "hello world" Docker app, deployed in an ECS cluster.
+
+## Backlog
+CI and CD process.
+
+Logging, monitoring, alerting via AWS or some third party tool.
+
+At a certain size, lambda deployment packages have to be uploaded to a S3 bucket before deployment. Add support for that.
+
+Configure the lambda to run in response to a HTTP GET or POST, and echo back request parameters.
+ 
+Increase the availability of the architecture by adding duplicate services to additional availability zones. For example, there's only one NAT in one AZ.
+ 
+Ansible script to automate local setup, such as creation of postgres user and database.
+
+Create a lambda and EC2 that does not require internet access, to demonstrate the use of [VPC endpoints](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-endpoints.html). Currently SSM and S3
+
+[Terraform modules](https://www.terraform.io/docs/modules/usage.html). 
+
+Use [Terraform Vault](https://www.terraform.io/docs/providers/vault/index.html) to store secrets and passwords instead of a local .bash_profile file.
+ 
+Microservices.
+
+"hello world" versions of other AWS services such as Kinesis, SQS, and Dynamo.
+ 
+Implementations using a serverless framework, other languages such as Java and Go, and other cloud providers such as Google Cloud Platform.
+  
