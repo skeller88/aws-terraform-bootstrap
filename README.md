@@ -190,7 +190,7 @@ and the user should also have the following inline policy, which gives it the ab
 ### Terraform IAM user
 [Set up Terraform](https://www.terraform.io/intro/getting-started/install.html)
 
-[Create a Terraform IAM user](https://console.aws.amazon.com/iam/home?region=us-west-1#/users), which provides Terraform 
+Create a Terraform IAM user, which provides Terraform 
 with access to AWS resources, but not root access, which can be abused. The Terraform user should have the same policies
 attached as the app user. Note that the Terraform IAM user could be used instead of the app IAM user, but this author's
 opinion is that it's best to have clear separation of responsibilities across IAMs. 
@@ -226,8 +226,8 @@ Export the following environment variable so boto knows which credentials to use
 `EXPORT AWS_PROFILE=hello_world`
 
 ## Key pair
-A key pair is needed in order to ssh into the bastion host from a local machine. Create a new key pair named 
-"bastion_host"  via the [AWS console](https://us-west-1.console.aws.amazon.com/ec2/v2/home?region=us-west-1#KeyPairs:sort=keyName) and the .pem file
+A key pair is needed in order to ssh into the bastion host from a local machine. [Create a new key pair](https://us-west-1.console.aws.amazon.com/ec2/v2/home?region=us-west-1#KeyPairs:sort=keyName) named 
+"bastion_host"  via the AWS console and the .pem file
 containing the private key will automatically be saved. Change the permissions of the .pem file to make sure that your private key file isn't publicly viewable:
 
 `chmod 400 ~/.aws/<pem-file-name>`
@@ -253,8 +253,6 @@ Before ssh'ing to the RDS instance, try ssh'ing to the bastion host.
 `ssh -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
 
 ### Create ssh tunnel to RDS instance
-[detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
-
 After `terraform apply` runs in the terminal, the id of the bastion ec2 instance will be printed to sdout. Copy and
 paste the id into the script below. 
 
@@ -264,6 +262,8 @@ In one terminal window, create the ssh tunnel:
 
 Then in another window, connect to the RDS instance:
 `psql --dbname=hello_world --user=hellorole --host=localhost --port=8000` 
+
+[Read this tutorial for more detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
 
 # Package AWS lambda and deploy infrastructure with Terraform
 Run `terraform apply` to build the terraform infrastructure. 
