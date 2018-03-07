@@ -5,6 +5,7 @@ Table of Contents
    * [Overview](#overview)
    * [Motivations](#motivations)
    * [Why not just use a serverless framework?](#why-not-just-use-a-serverless-framework)
+   * [Architecture digram clarifications](#architecture-diagram-clarifications)
    * [Local setup](#local-setup)
       * [Repo](#repo)
       * [Python environment](#python-environment)
@@ -76,14 +77,19 @@ level experience with cloud computing devops. With that lower level experience, 
 the components of cloud architectures, debug production issues, and understand the tradeoffs of the various severless
 frameworks. Also, I wanted to learn an open source infrastructure as code framework, and Terraform is a leader in that space.
 
-# Architecture clarifications
+# Architecture diagram clarifications
 The above architecture diagram shows that the app is deployed in two private subnets and two public subnets across two
 availability zones, one public and one private subnet per availability zone (AZ). The RDS instance is shown in one subnet 
 only because it's a single AZ deployment. Multi-AZ deployments are higher cost, and unnecessary for a bootstrap app
 like this one. It's easy to configure though if an app needs that increased uptime. 
 
 The lambda is shown in both private subnets because it can be run in either subnet. If one is available and one is down,
-for example, the lambda will be run in the subnet that is up.
+for example, the lambda will be run in the subnet that is up. Since the lambda depends on the NAT for access to the
+internet, there's one NAT in each AZ.
+
+There's only one bastion host because 1) that saves costs, and 2) uptime is not as important for a bastion host as it
+would be for the lambda. If the AZ containing the bastion host is down, it's less than a minute to use Terraform to add 
+a new bastion host to the other AZ. 
 
 # Local setup 
 ## Repo
