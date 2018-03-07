@@ -6,9 +6,9 @@ variable "project_name" {
   default = "hello-world"
 }
 
-
 # Set via environment variables
 variable "aws_account_id" {}
+
 variable "aws_region" {}
 variable "prod_db_password" {}
 variable "repo_dir" {}

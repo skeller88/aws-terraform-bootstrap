@@ -266,7 +266,7 @@ Then in another window, connect to the RDS instance:
 [Read this tutorial for more detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
 
 # Package AWS lambda and deploy infrastructure with Terraform
-Run `terraform apply` to build the terraform infrastructure. 
+Run `terraform apply` to build the terraform infrastructure, and `terraform fmt` to standardize the formatting of .tf files. 
 
 `deploy_lambda.sh hello_world` builds a zipfile for the lambda function and runs `terraform apply`
 

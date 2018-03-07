@@ -32,5 +32,6 @@ zip -rg $SCRIPT_DIR/$ZIPFILE_DIR/$LAMBDA_NAME.zip src/**
 
 # Run terraform apply
 cd terraform/
+terraform fmt
 terraform apply
 cd $SCRIPT_DIR
