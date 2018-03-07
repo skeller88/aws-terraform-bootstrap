@@ -5,7 +5,9 @@ Table of Contents
    * [Overview](#overview)
    * [Motivations](#motivations)
    * [Why not just use a serverless framework?](#why-not-just-use-a-serverless-framework)
-   * [Architecture digram clarifications](#architecture-diagram-clarifications)
+   * [Architecture diagram clarifications](#architecture-diagram-clarifications)
+   * [Deploy](#deploy)
+   * [Run](#run)
    * [Local setup](#local-setup)
       * [Repo](#repo)
       * [Python environment](#python-environment)
@@ -19,7 +21,7 @@ Table of Contents
          * [App IAM user](#app-iam-user)
          * [Terraform IAM user](#terraform-iam-user)
       * [Boto](#boto)
-      * [EC2 key pair](#ec2-key-pair)
+      * [EC2 Key pair](#ec2-key-pair)
       * [AWS Parameter Store](#aws-parameter-store)
       * [Remote access via bastion host](#remote-access-via-bastion-host)
          * [Add your local IP address to the allowed IP addresses of the VPC](#add-your-local-ip-address-to-the-allowed-ip-addresses-of-the-vpc)
@@ -28,8 +30,8 @@ Table of Contents
    * [Package AWS lambda and deploy infrastructure with Terraform](#package-aws-lambda-and-deploy-infrastructure-with-terraform)
    * [Destroy infrastructure with Terraform](#destroy-infrastructure-with-terraform)
    * [Future work](#future-work)
-     * [Planned](#planned)
-     * [Backlog](#backlog)
+      * [Planned](#planned)
+      * [Backlog](#backlog)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) 
   
@@ -90,6 +92,34 @@ internet, there's one NAT in each AZ.
 There's only one bastion host because 1) that saves costs, and 2) uptime is not as important for a bastion host as it
 would be for the lambda. If the AZ containing the bastion host is down, it's less than a minute to use Terraform to add 
 a new bastion host to the other AZ. 
+
+# Deploy
+Once setup is finished, deploy in one line:
+
+```
+cd <aws-terraform-bootstrap-dir>
+./deploy_lambda.sh hello_world
+```
+
+# Run
+From AWS:
+- Navigate to the "hello_world" Lambda dashboard
+- Configure a test event with an empty dictionary
+- Click "Test" to run the test event and execute the lambda, and output will appear on the dashboard
+- Change environment variables 
+
+
+From the command line:
+```
+cd <aws-terraform-bootstrap-dir>
+source venv/bin/activate
+python ./hello_world.py
+```
+
+From Pycharm:
+- Open "aws-terraform-bootstrap" repo
+- Right click on "hello_world.py" and select "Run 'hello_world'"
+
 
 # Local setup 
 ## Repo
@@ -284,8 +314,11 @@ In one terminal window, create the ssh tunnel:
 
 `ssh -L 8000:<rds-host-address>:5432 -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
 
-Then in another window, connect to the RDS instance:
-`psql --dbname=hello_world --user=hellorole --host=localhost --port=8000` 
+Then in another window, connect to the RDS instance, and see the data that's been written by the lambda:
+```
+psql --dbname=hello_world --user=hellorole --host=localhost --port=8000
+select * from messages;
+``` 
 
 [Read this tutorial for more detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
 

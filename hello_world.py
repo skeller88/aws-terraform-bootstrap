@@ -14,6 +14,7 @@ from src.storage.sql_alchemy_engine import SqlAlchemyEngine
 
 fake_json_endpoint = 'https://jsonplaceholder.typicode.com/posts/1'
 
+
 def main(event, context):
     secret = get_parameter('secret')
     print('fetched secret from SSM Parameter Store')
@@ -35,6 +36,7 @@ def main(event, context):
         Base.metadata.create_all(engine.db_client)
         session = engine.scoped_session_maker()
         message_dao = MessageDao()
+        print('writing to database')
         message_dao.save(session=session, commit=True, popo=Message(message=random_message))
     else:
         raise Exception('storage_type must be either "postgres" or "csv".')

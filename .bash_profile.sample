@@ -9,11 +9,11 @@ export TF_VAR_aws_account_id=217293619454
 export TF_VAR_aws_region=us-west-1
 export TF_VAR_prod_db_password=tuba-flower-earthen-whale
 export TF_VAR_repo_dir=/Users/shanekeller/Documents/aws-terraform-bootstrap
-export TF_VAR_rds_host="terraform-21111101231450534560000001.cqzlzpcvfiqi.us-west-1.rds.amazonaws.com"
+export TF_VAR_rds_host=terraform-21111101231450534560000001.cqzlzpcvfiqi.us-west-1.rds.amazonaws.com
 export TF_VAR_storage_type=csv
 
 # "hello_world" lambda configuration
 export STORAGE_TYPE=csv
 export LOCAL_DB_PASSWORD="archeological unhinge hormone rote"
-export S3_BUCKET="hello-world-wvshijklrqp"
+export S3_BUCKET=hello-world-wvshijklrqp
 export WRITE_TO_AWS=True
