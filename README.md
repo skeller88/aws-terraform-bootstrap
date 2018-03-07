@@ -1,4 +1,27 @@
-# aws-terraform-bootstrap
+Table of Contents
+=================
+   * [Table of Contents](#table-of-contents)
+      * [Overview](#overview)
+      * [Motivations](#motivations)
+      * [Why not just use a serverless framework?](#why-not-just-use-a-serverless-framework)
+   * [Local setup](#local-setup)
+      * [Set up Python environment](#set-up-python-environment)
+      * [Optional - Set up Python environment for ipython notebooks](#optional---set-up-python-environment-for-ipython-notebooks)
+      * [Set up Pycharm](#set-up-pycharm)
+      * [Set environment variables:](#set-environment-variables)
+      * [PostgreSQL](#postgresql)
+   * [AWS setup](#aws-setup)
+      * [Set up AWS credentials](#set-up-aws-credentials)
+      * [Setup Terraform and AWS credentials for Terraform](#setup-terraform-and-aws-credentials-for-terraform)
+      * [Create and configure key pair](#create-and-configure-key-pair)
+      * [Add app secrets to AWS Parameter Store](#add-app-secrets-to-aws-parameter-store)
+      * [Package AWS lambda and deploy Terraform infrastructure](#package-aws-lambda-and-deploy-terraform-infrastructure)
+      * [Add your local IP address to the allowed IP addresses of the VPC](#add-your-local-ip-address-to-the-allowed-ip-addresses-of-the-vpc)
+      * [ssh to bastion host](#ssh-to-bastion-host)
+      * [Create ssh tunnel to RDS instance](#create-ssh-tunnel-to-rds-instance)
+      * [Destroy infrastructure with Terraform](#destroy-infrastructure-with-terraform)
+   * [Future work](#future-work) 
+  
 
 ## Overview
 Bootstrap AWS infrastructure on top of Terraform and run a "hello_world" Python 3 app that uses the following AWS services:
@@ -41,11 +64,6 @@ I plan on learning a serverless framework in the future, but before learning tho
 level experience with cloud computing devops. With that lower level experience, I am better equipped to understand
 the components of cloud architectures, debug production issues, and understand the tradeoffs of the various severless
 frameworks. Also, I wanted to learn an open source infrastructure as code framework, and Terraform is a leader in that space.
-
-# Table of Contents
-[Local Setup](#local-setup)  
-[Set up Python environment](##set-up-python-environment)
-[AWS Setup](#aws-setup)  
 
 # Local setup 
 
