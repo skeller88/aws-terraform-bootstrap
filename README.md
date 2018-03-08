@@ -59,6 +59,11 @@ At the end of this README, you will have done the following:
 * set up the app to run locally
 * set up your local machine to ssh into an EC2 [bastion host](https://www.techopedia.com/definition/6157/bastion-host), and connect to a RDS instance via psql. 
 
+The app itself is simple. "hello_world.py" reads a parameter from Parameter Store, makes a HTTPS request to a [fake online REST API](https://jsonplaceholder.typicode.com/),
+generates a random string, and writes the string to a csv file or postgres, either locally or on AWS, depending on the 
+environment variables. The lambda executes "hello_world.py". The purpose of this repo is not to make a complex app, but
+rather to automate the DevOps work necessary to deploy an app on AWS inside a VPC. 
+
 # Motivations
 There are many blog posts, github repos, stack overflow posts, and AWS documentation that explain parts of how to build 
 and deploy AWS infrastructure with Terraform, but no repo I've found that puts all of the concepts I wanted together and makes it 
