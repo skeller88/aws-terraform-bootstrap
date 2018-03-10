@@ -3,9 +3,9 @@ Table of Contents
 
    * [Table of Contents](#table-of-contents)
    * [Overview](#overview)
+   * [Architecture](#architecture)
    * [Motivations](#motivations)
    * [Why not just use a serverless framework?](#why-not-just-use-a-serverless-framework)
-   * [Architecture diagram clarifications](#architecture-diagram-clarifications)
    * [Deploy](#deploy)
    * [Run](#run)
    * [Local setup](#local-setup)
@@ -33,9 +33,8 @@ Table of Contents
       * [Planned](#planned)
       * [Backlog](#backlog)
 
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc) 
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
   
-
 # Overview
 Bootstrap AWS infrastructure on top of Terraform and run a "hello_world" Python 3 app that uses the following AWS services:
 * [Lambda](https://aws.amazon.com/lambda/) - cloud functions
@@ -43,8 +42,6 @@ Bootstrap AWS infrastructure on top of Terraform and run a "hello_world" Python 
 * [S3](https://aws.amazon.com/s3/) - cloud file storage
 * [RDS](https://aws.amazon.com/rds/) - cloud SQL database
 * [Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html) - cloud storage for secrets
-
-![Architecture Diagram](architecture_diagram.jpg?raw=true)
 
 In addition, this repo helps you configure the following tools in your local environment:
 * Postgres - SQL database
@@ -59,10 +56,49 @@ At the end of this README, you will have done the following:
 * set up the app to run locally
 * set up your local machine to ssh into an EC2 [bastion host](https://www.techopedia.com/definition/6157/bastion-host), and connect to a RDS instance via psql. 
 
+# Architecture
+![Architecture Diagram](architecture_diagram.jpg?raw=true)
+
 The app itself is simple. "hello_world.py" reads a parameter from Parameter Store, makes a HTTPS request to a [fake online REST API](https://jsonplaceholder.typicode.com/),
-generates a random string, and writes the string to a csv file or postgres, either locally or on AWS, depending on the 
-environment variables. The lambda executes "hello_world.py". The purpose of this repo is not to make a complex app, but
+generates a random string, and, depending on the environment variables, writes the string to a csv file or Postgres, hosted
+either locally or on AWS. The csv file is either in a local directory:
+
+`<aws-terraform-bootstrap-dir>/data/<timestamp>_message.csv>`
+
+or an AWS bucket:
+
+`hello-world-<hello_world_bucket_name_suffix>/<timestamp>_message.csv`
+
+The Postgres database is either a local Postgres instance:
+
+`psql --dbname=hello_world --user=hellorole --host=localhost`
+
+or a Postgres instance hosted on a RDS host:
+
+`psql --dbname=<aws_db_instance_address> --user=hellorole --host=localhost --port=<port-of-connection-to-rds>`
+
+Details on connecting to the RDS Postgres instance are described later in this README.
+
+The lambda executes "hello_world.py". The purpose of this repo is not to make a complex app, but
 rather to automate the DevOps work necessary to deploy an app on AWS inside a VPC. 
+
+The above architecture diagram shows that the app is deployed in a VPC consisting of two private subnets and two public subnets across two
+availability zones, one public and one private subnet per availability zone (AZ). The lambda and RDS are deployed in a VPC 
+because RDS can only be deployed into a VPC, and so a lambda that accesses the RDS instance has to be in the same
+VPC. Also, deploying an instance into a VPC yields additional benefits such as the ability to change the security group
+of an instance while it's running. Read more in [AWS's VPC documentation](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Introduction.html) 
+about VPCs and AWS's migration away from their legacy EC2-Classic architecture.    
+
+The RDS instance is shown in one subnet only because it's a single AZ deployment. Multi-AZ deployments are higher cost, and unnecessary for a bootstrap app
+like this one. It's easy to configure though if an app needs that increased uptime. 
+
+The lambda is shown in both private subnets because it can be run in either subnet. If one is available and one is down,
+for example, the lambda will be run in the subnet that is up. Since the lambda depends on the NAT for access to the
+internet, there's one NAT in each AZ.
+
+There's only one bastion host because 1) that saves costs, and 2) uptime is not as important for a bastion host as it
+would be for the lambda. If the AZ containing the bastion host is down, it's less than a minute to use Terraform to add 
+a new bastion host to the other AZ. 
 
 # Motivations
 There are many blog posts, github repos, stack overflow posts, and AWS documentation that explain parts of how to build 
@@ -83,20 +119,6 @@ I plan on learning a serverless framework in the future, but before learning tho
 level experience with cloud computing devops. With that lower level experience, I am better equipped to understand
 the components of cloud architectures, debug production issues, and understand the tradeoffs of the various severless
 frameworks. Also, I wanted to learn an open source infrastructure as code framework, and Terraform is a leader in that space.
-
-# Architecture diagram clarifications
-The above architecture diagram shows that the app is deployed in two private subnets and two public subnets across two
-availability zones, one public and one private subnet per availability zone (AZ). The RDS instance is shown in one subnet 
-only because it's a single AZ deployment. Multi-AZ deployments are higher cost, and unnecessary for a bootstrap app
-like this one. It's easy to configure though if an app needs that increased uptime. 
-
-The lambda is shown in both private subnets because it can be run in either subnet. If one is available and one is down,
-for example, the lambda will be run in the subnet that is up. Since the lambda depends on the NAT for access to the
-internet, there's one NAT in each AZ.
-
-There's only one bastion host because 1) that saves costs, and 2) uptime is not as important for a bastion host as it
-would be for the lambda. If the AZ containing the bastion host is down, it's less than a minute to use Terraform to add 
-a new bastion host to the other AZ. 
 
 # Deploy
 Once setup is finished, deploy in one line:
@@ -187,7 +209,7 @@ variables used in production. Parameter store is used to populate other env vari
 terraform configuration. 
 
 ## PostgreSQL
-Install postgres [directly](https://www.postgresql.org/download/) or via [homebrew](https://brew.sh/):
+Install Postgres [directly](https://www.postgresql.org/download/) or via [homebrew](https://brew.sh/):
 `brew install postgresql`
 
 Using the Terminal, login to Postgres via superuser:
@@ -352,7 +374,7 @@ Configure the lambda to run in response to a HTTP GET or POST, and echo back req
  
 Increase the availability of the architecture by adding duplicate services to additional availability zones. For example, there's only one NAT in one AZ.
  
-Ansible script to automate local setup, such as creation of postgres user and database.
+Ansible script to automate local setup, such as creation of Postgres user and database.
 
 Create a lambda and EC2 that does not require internet access, to demonstrate the use of [VPC endpoints](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-endpoints.html). Currently SSM and S3
 

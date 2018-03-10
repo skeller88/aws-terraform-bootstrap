@@ -18,6 +18,7 @@ environment.env
 .terraform/
 terraform/scratch.tf
 *.tfstate*
+terraform/crash.log
 
 *.ipynb
 !notebooks/*ipynb

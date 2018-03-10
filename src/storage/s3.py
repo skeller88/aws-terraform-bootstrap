@@ -14,7 +14,9 @@ header = ['datetime', 'message']
 def write_result(write_to_aws, s3_bucket, rows):
     if write_to_aws:
         print('write_to_aws')
-        with smart_open.smart_open('s3://{0}/data.csv'.format(s3_bucket), 'wb') as fout:
+        second_timestamp = int(datetime.datetime.utcnow().replace(microsecond=0).timestamp())
+        local_filename = '{0}_message.csv'.format(second_timestamp)
+        with smart_open.smart_open('s3://{0}/{1}'.format(s3_bucket, local_filename), 'wb') as fout:
             print('writing to s3_bucket', s3_bucket)
             string_buffer = io.StringIO()
             writer = csv.writer(string_buffer)
