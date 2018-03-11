@@ -143,15 +143,14 @@ Once setup is finished, deploy the lambda and bootstrap the infrastructure in on
 $ cd <aws-terraform-bootstrap-dir>
 $ ./deploy_lambda.sh hello_world
 ```
+AWS has regions, and availability zones (AZs) within each region. [Due to AWS availability issues, a region
+may temporarily be unavailable](https://github.com/coreos/coreos-kubernetes/issues/442). If an AZ is unavailable,
+change the Terraform variable representing that AZ, located in `terraform/vars.tf` and with a variable name like `region_1_az_1`,
+to an available AZ. For example, in "us-west-1" the available AZs are "a", "b", and "c". 
 
 # Run
-Once you've finished the directions in "Local Setup" and "AWS Setup" in this README, run the app locally or on AWS.
-
-To run on AWS:
-- Navigate to the "hello_world" Lambda dashboard
-- Configure a test event with an empty dictionary
-- Click "Test" to run the test event and execute the lambda, and output will appear on the dashboard
-- Change environment variables as desired
+Once the directions in [Local setup](#local-setup) are finished, run the app locally. Make sure the "USE_AWS" environment variable
+is set to "False".
 
 Run locally from the command line:
 ```
@@ -163,6 +162,16 @@ Run locally from Pycharm:
 - Open "aws-terraform-bootstrap" repo
 - Right click on "hello_world.py" and select "Run 'hello_world'"
 
+Once the directions in [AWS setup](#aws-setup) are finished, run the app either on AWS:
+- Navigate to the "hello_world" Lambda dashboard
+- Configure a test event with an empty dictionary
+- Click "Test" to run the test event and execute the lambda, and output will appear on the dashboard
+- Change the "storage_type" environment variable to either "csv" (write to S3) or "postgres" (write to RDS). 
+
+Or locally against the AWS SSM Parameter Store and  S3 bucket, by setting "USE_AWS" to "True" and running the app locally 
+from the command line or from Pycharm. Note that it's not possible to run locally against the AWS RDS instance, because
+the RDS instance is located in a private subnet, and can only be accessed from outside the private subnet via the 
+EC2 bastion host. 
 
 # Local setup 
 ## Repo
@@ -276,7 +285,7 @@ in the `tests` folder via the command line or via Pycharm.
 ## IAMs
 ### App IAM user
 [Create an IAM user with more limited permissions for the app](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html),
-and use the user's credentials to run the app locally. Do not use your default/admin AWS credentials, because that user has root access, and using API keys for that user in the app
+and use the user's credentials to locally run the app against AWS S3. Do not use your default/admin AWS credentials, because that user has root access, and using API keys for that user in the app
 makes it more likely that the keys will be compromised. Instead, 
 The user should have the following policies attached:
 - AmazonEC2FullAccess
@@ -320,8 +329,9 @@ aws_secret_access_key = <terraform-admin-access-secret>
 
 Initialize Terraform:
 ```
-$ cd terraform
+$ pushd terraform
 $ terraform init
+$ popd
 ```
 
 ## Boto
@@ -336,16 +346,12 @@ region=<desired-aws-region>
 
 Create a parent `.aws` folder if necessary.
 
-Export the following environment variable so boto knows which credentials to use:
-
-`EXPORT AWS_PROFILE=hello_world`
-
 ## EC2 Key pair
 A key pair is needed in order to ssh into the bastion host from a local machine. [Create a new key pair](https://us-west-1.console.aws.amazon.com/ec2/v2/home?region=us-west-1#KeyPairs:sort=keyName) named 
-"bastion_host"  via the AWS console and the .pem file
-containing the private key will automatically be saved. Change the permissions of the .pem file to make sure that your private key file isn't publicly viewable:
+"bastion_host"  via the AWS console and the .pem file containing the private key will automatically be saved. Change 
+the permissions of the .pem file to make sure that your private key file isn't publicly viewable:
 
-`$ chmod 400 ~/.aws/<pem-file-name>`
+`$ chmod 400 bastion_host.pem`
 
 Move the .pem file to the `~/.aws` folder. AWS has [a more detailed explanation of key pairs.](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#retrieving-the-public-key)
 
@@ -356,12 +362,6 @@ Go to the [parameter store console](https://us-west-1.console.aws.amazon.com/sys
 parameter with the name 'secret'. Save it as a "SecureString". 
 
 ## Remote access via bastion host
-
-### Add your local IP address to the allowed IP addresses of the VPC
-An AWS help desk recommended way to enable access to the bastion host from your local machine is to go to
-[the VPC console](https://us-west-1.console.aws.amazon.com/vpc/home?region=us-west-1#vpcs) and add a CIDR block containing your IP
-address to the VPC settings. 
-
 ### ssh to bastion host
 Before ssh'ing to the RDS instance, try ssh'ing to the bastion host. 
 `bastion_ec2_public_address` is output to the terminal by Terraform. Copy it and modify the script below:
@@ -389,7 +389,7 @@ Run `terraform apply` to build the terraform infrastructure, and `terraform fmt`
 `$ deploy_lambda.sh hello_world` builds a zipfile for the lambda function and runs `terraform apply`
 
 # Destroy infrastructure with Terraform
-It's easy to remove all of the infrastructure deployed via Terraform with a single command, ["terraform destroy"](https://www.terraform.io/intro/getting-started/destroy.html).
+Remove all of the infrastructure deployed via Terraform with a single command, ["terraform destroy"](https://www.terraform.io/intro/getting-started/destroy.html).
 
 # Future work 
 Contributions to this repo are welcome. 

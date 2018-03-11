@@ -2,7 +2,7 @@ resource "aws_lambda_function" "hello_world" {
   environment {
     variables = {
       ENV              = "prod"
-      WRITE_TO_AWS     = "True"
+      USE_AWS          = "True"
       PROD_DB_PASSWORD = "${aws_db_instance.hello_world.password}"
       RDS_HOST         = "${aws_db_instance.hello_world.address}"
 
@@ -24,7 +24,7 @@ resource "aws_lambda_function" "hello_world" {
 
   vpc_config {
     security_group_ids = ["${aws_security_group.hello_world_lambda_vpc_security_group.id}"]
-    subnet_ids         = ["${aws_subnet.hello_world_private_west_1a.id}", "${aws_subnet.hello_world_private_west_1b.id}"]
+    subnet_ids         = ["${aws_subnet.hello_world_private_region_1_az_1.id}", "${aws_subnet.hello_world_private_region_1_az_2.id}"]
   }
 
   tags {

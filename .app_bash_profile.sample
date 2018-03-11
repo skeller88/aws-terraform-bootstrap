@@ -22,8 +22,13 @@ export AWS_PROFILE=hello_world
 
 # These variables are used to run the app locally.
 export LOCAL_DB_PASSWORD="archeological unhinge hormone rote"
+
+export RDS_HOST=terraform-20180306214317241900000001.cqzlzpcvfiqi.us-west-1.rds.amazonaws.com
+
 export S3_BUCKET=hello-world-wvshijklrqp
-export WRITE_TO_AWS=True
+# If "True", run against AWS instances. Always set to "True" in the lambda environment variables, but can be set to
+# either "True" or "False" locally
+export USE_AWS=True
 
 # These variables are also used to run the app locally, but are duplicates of certain "TF_VAR"-prefixed variables, because
 # Terraform strips "TF_VAR" from the variables and then in terraform/lambda.tf, those variables are set as the lambda

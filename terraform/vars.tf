@@ -6,6 +6,14 @@ variable "project_name" {
   default = "hello-world"
 }
 
+variable "region_1_az_1" {
+  default = "us-west-1a"
+}
+
+variable "region_1_az_2" {
+  default = "us-west-1b"
+}
+
 # Set via environment variables
 variable "aws_region" {}
 

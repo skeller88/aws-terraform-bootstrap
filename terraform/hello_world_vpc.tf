@@ -29,7 +29,7 @@ resource "aws_vpc" "hello_world" {
 resource "aws_db_subnet_group" "hello_world_db_subnet" {
   name        = "hello_world_db_subnet"
   description = "db subnet group"
-  subnet_ids  = ["${aws_subnet.hello_world_private_west_1a.id}", "${aws_subnet.hello_world_private_west_1b.id}"]
+  subnet_ids  = ["${aws_subnet.hello_world_private_region_1_az_1.id}", "${aws_subnet.hello_world_private_region_1_az_2.id}"]
 
   tags {
     Project = "hello-world"
@@ -40,23 +40,23 @@ resource "aws_db_subnet_group" "hello_world_db_subnet" {
 # https://serverfault.com/questions/630022/what-is-the-recommended-cidr-when-creating-vpc-on-aws
 # ...For smaller networks, use a 24-bit mask in different regions
 # Private
-resource "aws_subnet" "hello_world_private_west_1a" {
-  availability_zone = "us-west-1a"
+resource "aws_subnet" "hello_world_private_region_1_az_1" {
+  availability_zone = "${var.region_1_az_1}"
 
   tags {
     Project = "hello-world"
-    Name    = "private us-west-1a subnet"
+    Name    = "private ${var.region_1_az_1} subnet"
   }
 
   cidr_block = "10.0.0.0/24"
   vpc_id     = "${aws_vpc.hello_world.id}"
 }
 
-resource "aws_subnet" "hello_world_private_west_1b" {
-  availability_zone = "us-west-1b"
+resource "aws_subnet" "hello_world_private_region_1_az_2" {
+  availability_zone = "${var.region_1_az_2}"
 
   tags {
-    Name    = "private us-west-1b subnet"
+    Name    = "private ${var.region_1_az_2} subnet"
     Project = "hello-world"
   }
 
@@ -65,24 +65,24 @@ resource "aws_subnet" "hello_world_private_west_1b" {
 }
 
 # Public
-resource "aws_subnet" "hello_world_public_west_1a" {
-  availability_zone = "us-west-1a"
+resource "aws_subnet" "hello_world_public_region_1_az_1" {
+  availability_zone = "${var.region_1_az_1}"
 
   tags {
     Project = "hello-world"
-    Name    = "public us-west-1a subnet"
+    Name    = "public ${var.region_1_az_1} subnet"
   }
 
   cidr_block = "10.0.2.0/24"
   vpc_id     = "${aws_vpc.hello_world.id}"
 }
 
-resource "aws_subnet" "hello_world_public_west_1b" {
-  availability_zone = "us-west-1b"
+resource "aws_subnet" "hello_world_public_region_1_az_2" {
+  availability_zone = "${var.region_1_az_2}"
 
   tags {
     Project = "hello-world"
-    Name    = "public us-west-1b subnet"
+    Name    = "public ${var.region_1_az_2} subnet"
   }
 
   cidr_block = "10.0.3.0/24"

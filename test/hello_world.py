@@ -6,7 +6,7 @@ from nose.tools import eq_
 class Dummy(unittest.TestCase):
     """
     Either run this test via pycharm or via the command line:
-    nosetests test/dummy.py --nocapture
+    nosetests test/hello_world.py --nocapture
     """
     @classmethod
     def setUpClass(cls):

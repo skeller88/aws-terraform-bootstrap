@@ -7,13 +7,12 @@ resource "aws_db_instance" "hello_world" {
   skip_final_snapshot       = true
 
   # ssd
-  storage_type        = "gp2"
-  engine              = "postgres"
-  instance_class      = "db.t2.micro"
-  name                = "hello_world"
-  username            = "hellorole"
-  password            = "${var.prod_db_password}"
-  publicly_accessible = true
+  storage_type   = "gp2"
+  engine         = "postgres"
+  instance_class = "db.t2.micro"
+  name           = "hello_world"
+  username       = "hellorole"
+  password       = "${var.prod_db_password}"
 
   tags {
     Name    = "postgres db"

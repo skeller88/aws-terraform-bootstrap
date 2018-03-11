@@ -11,9 +11,9 @@ import smart_open
 header = ['datetime', 'message']
 
 
-def write_result(write_to_aws, s3_bucket, rows):
-    if write_to_aws:
-        print('write_to_aws')
+def write_result(use_aws, s3_bucket, rows):
+    if use_aws:
+        print('use_aws')
         second_timestamp = int(datetime.datetime.utcnow().replace(microsecond=0).timestamp())
         local_filename = '{0}_message.csv'.format(second_timestamp)
         with smart_open.smart_open('s3://{0}/{1}'.format(s3_bucket, local_filename), 'wb') as fout:

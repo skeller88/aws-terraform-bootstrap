@@ -3,11 +3,11 @@ resource "aws_instance" "hello_world_bastion" {
   ami                    = "ami-824c4ee2"
   key_name               = "bastion_host"
   instance_type          = "t2.micro"
-  subnet_id              = "${aws_subnet.hello_world_public_west_1a.id}"
+  subnet_id              = "${aws_subnet.hello_world_public_region_1_az_1.id}"
   vpc_security_group_ids = ["${aws_security_group.hello_world_bastion_security_group.id}"]
 
   # EC2 instance must be in a public subnet
-  subnet_id = "${aws_subnet.hello_world_public_west_1a.id}"
+  subnet_id = "${aws_subnet.hello_world_public_region_1_az_1.id}"
 
   tags {
     Name    = "hello_world bastion"

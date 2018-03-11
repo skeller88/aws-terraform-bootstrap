@@ -22,7 +22,7 @@ resource "aws_nat_gateway" "hello_world_private_west_1a" {
   }
 
   allocation_id = "${aws_eip.hello_world_private_west_1a.id}"
-  subnet_id     = "${aws_subnet.hello_world_public_west_1a.id}"
+  subnet_id     = "${aws_subnet.hello_world_public_region_1_az_1.id}"
   depends_on    = ["aws_internet_gateway.hello_world"]
 }
 
@@ -34,7 +34,7 @@ resource "aws_nat_gateway" "hello_world_private_west_1b" {
   }
 
   allocation_id = "${aws_eip.hello_world_private_west_1b.id}"
-  subnet_id     = "${aws_subnet.hello_world_public_west_1a.id}"
+  subnet_id     = "${aws_subnet.hello_world_public_region_1_az_1.id}"
   depends_on    = ["aws_internet_gateway.hello_world"]
 }
 
