@@ -4,18 +4,22 @@ Table of Contents
    * [Table of Contents](#table-of-contents)
    * [Overview](#overview)
    * [Architecture](#architecture)
+      * [Application](#application)
+      * [Networking](#networking)
    * [Motivations](#motivations)
    * [Why not just use a serverless framework?](#why-not-just-use-a-serverless-framework)
+   * [Why Terraform?](#why-terraform)
    * [Deploy](#deploy)
    * [Run](#run)
    * [Local setup](#local-setup)
       * [Repo](#repo)
       * [Python environment](#python-environment)
+         * [Install dependencies](#install-dependencies)
          * [Optional: Ipython notebooks](#optional-ipython-notebooks)
          * [Optional: Pycharm](#optional-pycharm)
       * [Environment variables](#environment-variables)
       * [PostgreSQL](#postgresql)
-      * [Testing](#testing)
+      * [Optional: Testing](#optional-testing)
    * [AWS setup](#aws-setup)
       * [IAMs](#iams)
          * [App IAM user](#app-iam-user)
@@ -58,7 +62,7 @@ At the end of this README, you will have done the following:
 
 # Architecture
 ![Architecture Diagram](architecture_diagram.jpg?raw=true)
-
+## Application
 The app itself is simple. "hello_world.py" reads a parameter from Parameter Store, makes a HTTPS request to a [fake online REST API](https://jsonplaceholder.typicode.com/),
 and, depending on the environment variables, writes part of the response from the fake REST API to a csv file or Postgres, hosted
 either locally or on AWS. The csv file is either in a local directory:
@@ -71,17 +75,18 @@ or an AWS bucket:
 
 The Postgres database is either a local Postgres instance:
 
-`psql --dbname=hello_world --user=hellorole --host=localhost`
+`$ psql --dbname=hello_world --user=hellorole --host=localhost`
 
 or a Postgres instance hosted on a RDS host:
 
-`psql --dbname=<aws_db_instance_address> --user=hellorole --host=localhost --port=<port-of-connection-to-rds>`
+`$ psql --dbname=<aws_db_instance_address> --user=hellorole --host=localhost --port=<port-of-connection-to-rds>`
 
 Details on connecting to the RDS Postgres instance are described later in this README.
 
 The lambda executes "hello_world.py". The purpose of this repo is not to make a complex app, but
 rather to automate the DevOps work necessary to deploy an app on AWS inside a VPC. 
 
+## Networking
 The above architecture diagram shows that the app is deployed in a VPC consisting of two private subnets and two public subnets across two
 availability zones, one public and one private subnet per availability zone (AZ). The lambda and RDS are deployed in a VPC 
 because RDS can only be deployed into a VPC, and so a lambda that accesses the RDS instance has to be in the same
@@ -118,14 +123,25 @@ other cloud providers.
 I plan on learning a serverless framework in the future, but before learning those tools, I wanted to get more lower 
 level experience with cloud computing devops. With that lower level experience, I am better equipped to understand
 the components of cloud architectures, debug production issues, and understand the tradeoffs of the various severless
-frameworks. Also, I wanted to learn an open source infrastructure as code framework, and Terraform is a leader in that space.
+frameworks. 
+
+# Why Terraform?
+Since a serverless framework is not being used, an infrastructure as code (IaC) framework is needed to provision
+AWS instances. "Provision" means choosing the number, type, and properties of instances, and deploying those instances. 
+Terraform was chosen for a few reasons. It's an open source infrastructure as code framework, which means that it's
+free to use (paid features like Terraform Vault are optional). It's used by companies with large apps that serve
+millions of users, including my former company. It can be used with any cloud computing platform. Finally, it's 
+declarative, which means the end infrastructure state is specified, and Terraform figures out how to achieve that state.
+That means it's easy to add, change, and remove infrastructure. Gruntwork.io [has an excellent blog post](https://blog.gruntwork.io/why-we-use-terraform-and-not-chef-puppet-ansible-saltstack-or-cloudformation-7989dad2865c)
+that dives deeper into the benefits of Terraform compared with Cloud Formation, Puppet, and other tools.
+
 
 # Deploy
 Once setup is finished, deploy in one line:
 
 ```
-cd <aws-terraform-bootstrap-dir>
-./deploy_lambda.sh hello_world
+$ cd <aws-terraform-bootstrap-dir>
+$ ./deploy_lambda.sh hello_world
 ```
 
 # Run
@@ -138,8 +154,8 @@ Once setup is finished, run on AWS:
 
 From the command line:
 ```
-cd <aws-terraform-bootstrap-dir>
-source venv/bin/activate && source .app_bash_profile && python ./hello_world.py
+$ cd <aws-terraform-bootstrap-dir>
+$ source venv/bin/activate && source .app_bash_profile && python ./hello_world.py
 ```
 
 From Pycharm:
@@ -149,7 +165,7 @@ From Pycharm:
 
 # Local setup 
 ## Repo
-`git clone https://github.com/skeller88/aws-terraform-bootstrap.git`
+`$ git clone https://github.com/skeller88/aws-terraform-bootstrap.git`
 
 ## Python environment
 Install Python 3.6, either [directly](https://www.python.org/downloads/release/python-363/) or via [homebrew](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-macos)
@@ -157,28 +173,28 @@ Install Python 3.6, either [directly](https://www.python.org/downloads/release/p
 Then create the virtual environment. Virtual environments keep the app environment isolated from the OS environment. 
 
 ```
-cd <aws-terraform-bootstrap-dir>
-python3 -m venv venv
-source venv/bin/activate
+$ cd <aws-terraform-bootstrap-dir>
+$ python3 -m venv venv
+$ source venv/bin/activate
 ```
 
 Depending on your OS and python version, an error may occur [due to a bug in pyvenv](https://askubuntu.com/questions/488529/pyvenv-3-4-error-returned-non-zero-exit-status-1). 
 If that happens, install pip after creating the venv:
 
 ```
-cd <aws-terraform-bootstrap-dir>
-python3 -m venv venv --without-pip
-source venv/bin/activate
-curl https://bootstrap.pypa.io/get-pip.py | python
-deactivate
-source venv/bin/activate
+$ cd <aws-terraform-bootstrap-dir>
+$ python3 -m venv venv --without-pip
+$ source venv/bin/activate
+$ curl https://bootstrap.pypa.io/get-pip.py | python
+$ deactivate
+$ source venv/bin/activate
 ```
 
 ### Install dependencies
 ```
 # Make sure the virtual environment for the app has been activated
-source venv/bin/activate
-pip install -r requirements.txt
+$ source venv/bin/activate
+$ pip install -r requirements.txt
 ```
 
 ### Optional: Ipython notebooks
@@ -189,7 +205,7 @@ environment is configured via an environment.yml file.
 
 [Create the "hello_world" environment from the environment.yml file](https://conda.io/docs/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file):
 
-`conda env create -f environment.yml`
+`$ conda env create -f environment.yml`
 
 Start the Anaconda application and select the "hello_world" environment.
 
@@ -222,7 +238,7 @@ Install Postgres [directly](https://www.postgresql.org/download/) or via [homebr
 
 Using the Terminal, login to Postgres via superuser:
 
-`psql postgres`
+`$ psql postgres`
  
 and create a role, `hellorole`.
  
@@ -235,14 +251,14 @@ Press "ctrl + D" to exit
 Choose a different password from your superuser password. The reason you create a new role is so that your superuser 
 credentials are less likely to be compromised. 
 
-Create the database
+Create the database using the Terminal:
 
-`createdb hello_world`
+`$ createdb hello_world`
 
 Connect to it with the new user to verify that the database has been created successfully. There will not be any 
 tables in the database:
 ```
-psql -U hellorole -d hello_world
+$ psql -U hellorole -d hello_world
 ```
 
 There is no table in the database yet. The app will populate the "messages" table when it is run.
@@ -304,8 +320,8 @@ aws_secret_access_key = <terraform-admin-access-secret>
 Initialize Terraform
 
 ```
-cd terraform
-terraform init
+$ cd terraform
+$ terraform init
 ```
 
 ## Boto
@@ -329,7 +345,7 @@ A key pair is needed in order to ssh into the bastion host from a local machine.
 "bastion_host"  via the AWS console and the .pem file
 containing the private key will automatically be saved. Change the permissions of the .pem file to make sure that your private key file isn't publicly viewable:
 
-`chmod 400 ~/.aws/<pem-file-name>`
+`$ chmod 400 ~/.aws/<pem-file-name>`
 
 Move the .pem file to the `~/.aws` folder. AWS has [a more detailed explanation of key pairs.](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#retrieving-the-public-key)
 
@@ -349,7 +365,7 @@ address to the VPC settings.
 ### ssh to bastion host
 Before ssh'ing to the RDS instance, try ssh'ing to the bastion host. 
 `bastion_ec2_public_address` is output to the terminal by Terraform. Copy it and modify the script below:
-`ssh -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
+`$ ssh -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
 
 ### Create ssh tunnel to RDS instance
 After `terraform apply` runs in the terminal, the id of the bastion ec2 instance will be printed to sdout. Copy and
@@ -357,11 +373,11 @@ paste the id into the script below.
 
 In one terminal window, create the ssh tunnel:
 
-`ssh -L 8000:<rds-host-address>:5432 -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
+`$ ssh -L 8000:<rds-host-address>:5432 -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
 
 Then in another window, connect to the RDS instance, and see the data that's been written by the lambda:
 ```
-psql --dbname=hello_world --user=hellorole --host=localhost --port=8000
+$ psql --dbname=hello_world --user=hellorole --host=localhost --port=8000
 select * from messages;
 ``` 
 
@@ -370,7 +386,7 @@ select * from messages;
 # Package AWS lambda and deploy infrastructure with Terraform
 Run `terraform apply` to build the terraform infrastructure, and `terraform fmt` to standardize the formatting of .tf files. 
 
-`deploy_lambda.sh hello_world` builds a zipfile for the lambda function and runs `terraform apply`
+`$ deploy_lambda.sh hello_world` builds a zipfile for the lambda function and runs `terraform apply`
 
 # Destroy infrastructure with Terraform
 It's easy to remove all of the infrastructure deployed via Terraform with a single command, ["terraform destroy"](https://www.terraform.io/intro/getting-started/destroy.html).
