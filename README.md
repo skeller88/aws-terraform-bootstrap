@@ -137,7 +137,7 @@ that dives deeper into the benefits of Terraform compared with Cloud Formation, 
 
 
 # Deploy
-Once setup is finished, deploy in one line:
+Once setup is finished, deploy the lambda and bootstrap the infrastructure in one line:
 
 ```
 $ cd <aws-terraform-bootstrap-dir>
@@ -145,20 +145,21 @@ $ ./deploy_lambda.sh hello_world
 ```
 
 # Run
-Once setup is finished, run on AWS:
+Once you've finished the directions in "Local Setup" and "AWS Setup" in this README, run the app locally or on AWS.
+
+To run on AWS:
 - Navigate to the "hello_world" Lambda dashboard
 - Configure a test event with an empty dictionary
 - Click "Test" to run the test event and execute the lambda, and output will appear on the dashboard
-- Change environment variables 
+- Change environment variables as desired
 
-
-From the command line:
+Run locally from the command line:
 ```
 $ cd <aws-terraform-bootstrap-dir>
 $ source venv/bin/activate && source .app_bash_profile && python ./hello_world.py
 ```
 
-From Pycharm:
+Run locally from Pycharm:
 - Open "aws-terraform-bootstrap" repo
 - Right click on "hello_world.py" and select "Run 'hello_world'"
 
@@ -274,8 +275,9 @@ in the `tests` folder via the command line or via Pycharm.
 # AWS setup
 ## IAMs
 ### App IAM user
-This user is useful to run the app locally. Do not use your default/admin AWS credentials, because that user has root access, and using API keys for that user in the app
-makes it more likely that the keys will be compromised. Instead, [create an IAM user with more limited permissions for the app](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html).
+[Create an IAM user with more limited permissions for the app](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html),
+and use the user's credentials to run the app locally. Do not use your default/admin AWS credentials, because that user has root access, and using API keys for that user in the app
+makes it more likely that the keys will be compromised. Instead, 
 The user should have the following policies attached:
 - AmazonEC2FullAccess
 - AWSLambdaFullAccess
@@ -305,10 +307,9 @@ and the user should also have the following inline policy, which gives it the ab
 ### Terraform IAM user
 [Set up Terraform](https://www.terraform.io/intro/getting-started/install.html)
 
-Create a Terraform IAM user, which provides Terraform 
-with access to AWS resources, but not root access, which can be abused. The Terraform user should have the same policies
-attached as the app user. Note that the Terraform IAM user could be used instead of the app IAM user, but this author's
-opinion is that it's best to have clear separation of responsibilities across IAMs. 
+Create a Terraform IAM user, which provides Terraform with access to AWS resources, but not root access, which can be abused. 
+The Terraform user should have the same policies attached as the app user. Note that the Terraform IAM user could be used 
+instead of the app IAM user, but it's best to have clear separation of responsibilities across IAMs. 
 
 Add the secret and key created for the Terraform IAM user to the `~/.aws/credentials` file:
 ```
@@ -317,8 +318,7 @@ aws_access_key_id = <terraform-access-key-id>
 aws_secret_access_key = <terraform-admin-access-secret>
 ```
 
-Initialize Terraform
-
+Initialize Terraform:
 ```
 $ cd terraform
 $ terraform init
