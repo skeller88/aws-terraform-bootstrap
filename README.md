@@ -60,7 +60,7 @@ At the end of this README, you will have done the following:
 ![Architecture Diagram](architecture_diagram.jpg?raw=true)
 
 The app itself is simple. "hello_world.py" reads a parameter from Parameter Store, makes a HTTPS request to a [fake online REST API](https://jsonplaceholder.typicode.com/),
-generates a random string, and, depending on the environment variables, writes the string to a csv file or Postgres, hosted
+and, depending on the environment variables, writes part of the response from the fake REST API to a csv file or Postgres, hosted
 either locally or on AWS. The csv file is either in a local directory:
 
 `<aws-terraform-bootstrap-dir>/data/<timestamp>_message.csv>`

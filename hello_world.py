@@ -20,16 +20,14 @@ def main(event, context):
     print('fetched secret from SSM Parameter Store', secret)
 
     response = requests.get(fake_json_endpoint).json()
-    print('fetched data from the internet:', response)
+    print('fetched message from the internet:', response)
 
-    random_message = ''.join(random.choice(string.ascii_lowercase) for num in range(10))
-
-    message_data = [
-        [datetime.datetime.utcnow().timestamp(), random_message]
+    data = [
+        [datetime.datetime.utcnow().timestamp(), response['title']]
     ]
     if Properties.storage_type == 'csv':
         print("storage_type is 'csv'")
-        write_result(Properties.write_to_aws, Properties.s3_bucket, message_data)
+        write_result(Properties.write_to_aws, Properties.s3_bucket, data)
     elif Properties.storage_type == 'postgres':
         print("storage_type is 'postgres'")
         engine = SqlAlchemyEngine.rds_engine() if Properties.write_to_aws else SqlAlchemyEngine.local_engine_maker()
@@ -37,12 +35,12 @@ def main(event, context):
         session = engine.scoped_session_maker()
         message_dao = MessageDao()
         print('writing to database')
-        message_dao.save(session=session, commit=True, popo=Message(message=random_message))
+        message_dao.save(session=session, commit=True, popo=Message(message=response['title']))
     else:
         raise Exception('storage_type must be either "postgres" or "csv".')
 
     return {
-        'message': random_message,
+        'message': response['title'],
         'response': response,
         'secret': secret
     }
