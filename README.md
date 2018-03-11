@@ -129,7 +129,7 @@ cd <aws-terraform-bootstrap-dir>
 ```
 
 # Run
-From AWS:
+Once setup is finished, run on AWS:
 - Navigate to the "hello_world" Lambda dashboard
 - Configure a test event with an empty dictionary
 - Click "Test" to run the test event and execute the lambda, and output will appear on the dashboard
@@ -139,8 +139,7 @@ From AWS:
 From the command line:
 ```
 cd <aws-terraform-bootstrap-dir>
-source venv/bin/activate
-python ./hello_world.py
+source venv/bin/activate && source .app_bash_profile && python ./hello_world.py
 ```
 
 From Pycharm:
@@ -153,11 +152,14 @@ From Pycharm:
 `git clone https://github.com/skeller88/aws-terraform-bootstrap.git`
 
 ## Python environment
-Virtual environments keep the app environment isolated from the OS environment. 
+Install Python 3.6, either [directly](https://www.python.org/downloads/release/python-363/) or via [homebrew](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-macos)
+
+Then create the virtual environment. Virtual environments keep the app environment isolated from the OS environment. 
 
 ```
 cd <aws-terraform-bootstrap-dir>
 python3 -m venv venv
+source venv/bin/activate
 ```
 
 Depending on your OS and python version, an error may occur [due to a bug in pyvenv](https://askubuntu.com/questions/488529/pyvenv-3-4-error-returned-non-zero-exit-status-1). 
@@ -172,12 +174,16 @@ deactivate
 source venv/bin/activate
 ```
 
-Install dependencies
-`pip install -r requirements.txt`
+### Install dependencies
+```
+# Make sure the virtual environment for the app has been activated
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
 ### Optional: Ipython notebooks
-Due to ipython requiring different dependencies from the app, a separate environment is configured via an environment.yml
-file. 
+iPython is a useful data analysis tool. Due to iPython requiring different dependencies from the app, a separate 
+environment is configured via an environment.yml file. 
 
 [Install Anaconda for Python 3.6](https://www.anaconda.com/download/#macos).
 
@@ -200,9 +206,11 @@ Environment variables are used to run the app locally, and also to populate Terr
 See the [Terraform documentation](https://www.terraform.io/docs/configuration/variables.html#environment-variables)
 for information on how this process works. 
 
-Copy the environment variables in `.bash_profile.sample` to the local `~/.bash_profile` file, and modify them with the proper
-values for the local environment. Make sure the file is not committed to version control so the secrets are safe.
-
+Copy the environment variables in `.app_bash_profile.sample` to an `.app_bash_profile` file in this repo at the root
+directory, and modify them with the proper values for the local machine. `.app_bash_profile` is in the `.gitignore`
+file, which prevents it from being committed to version control so the secrets will be safe. `.app_bash_profile`
+is sourced as part of the `./deploy_lambda.sh` script, which means that its variables are injected into the 
+environment. 
 
 Look at the "environment.variables" property of the lambda configurations in terraform/lambda.tf for an understanding of the 
 variables used in production. Parameter store is used to populate other env variables not seen in the
@@ -214,26 +222,36 @@ Install Postgres [directly](https://www.postgresql.org/download/) or via [homebr
 
 Using the Terminal, login to Postgres via superuser:
 
-`psql`
+`psql postgres`
  
-and create a role, <username>. `hellorole` is the production database role, FYI. 
+and create a role, `hellorole`.
+ 
 ```
-CREATE ROLE <username> WITH PASSWORD '<password>';
-ALTER ROLE <username> CREATEDB; 
+CREATE ROLE hellorole WITH PASSWORD '<password>';
+ALTER ROLE hellorole CREATEDB; 
+ALTER ROLE hellorole WITH LOGIN;
+Press "ctrl + D" to exit
 ```
 Choose a different password from your superuser password. The reason you create a new role is so that your superuser 
 credentials are less likely to be compromised. 
 
-Then create the database and connect to it with the new user:
+Create the database
+
+`createdb hello_world`
+
+Connect to it with the new user to verify that the database has been created successfully. There will not be any 
+tables in the database:
 ```
-createdb hello_word;
-psql -U <username> -d hello_world
+psql -U hellorole -d hello_world
 ```
+
+There is no table in the database yet. The app will populate the "messages" table when it is run.
+
 [Refer to this article on setting up PostgreSQL](https://www.codementor.io/engineerapart/getting-started-with-postgresql-on-mac-osx-are8jcopb)for 
 a more detailed explanation of the process. In order to perform additional actions from the command line, further
 permissions for the role may be needed.
 
-## Testing
+## Optional: Testing
 Nosetests is the testing framework used. A dummy test suite should show you the gist of how Nosetests works. Run tests 
 in the `tests` folder via the command line or via Pycharm.
 

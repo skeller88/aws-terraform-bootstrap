@@ -11,7 +11,6 @@ data "template_file" "lambda_basic_execution_policy" {
   template = "${file("./templates/policies/lambda_basic_execution_policy.tpl")}"
 
   vars {
-    aws_region     = "${var.aws_region}"
-    aws_account_id = "${var.aws_account_id}"
+    aws_region = "${var.aws_region}"
   }
 }

@@ -11,8 +11,7 @@ dist/
 *.iml
 
 # Pycharm
-# envfile: https://stackoverflow.com/questions/42708389/how-to-set-environment-variables-in-pycharm
-environment.env
+.app_bash_profile
 
 # Terraform
 .terraform/

@@ -14,4 +14,4 @@ def get_parameter(param_name):
         Name=param_name,
         WithDecryption=True
     )
-    return response
+    return response['Parameter']['Value']

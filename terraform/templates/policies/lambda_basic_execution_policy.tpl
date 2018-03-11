@@ -17,18 +17,12 @@
         },
         {
             "Action": [
-                "ssm:DescribeParameters"
-            ],
-            "Effect": "Allow",
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
+                "ssm:DescribeParameters",
                 "ssm:GetParameter",
                 "ssm:GetParameters"
             ],
-            "Resource": "arn:aws:ssm:${aws_region}:${aws_account_id}:parameter/*"
+            "Effect": "Allow",
+            "Resource": "*"
         },
         {
           "Effect": "Allow",

@@ -17,7 +17,7 @@ fake_json_endpoint = 'https://jsonplaceholder.typicode.com/posts/1'
 
 def main(event, context):
     secret = get_parameter('secret')
-    print('fetched secret from SSM Parameter Store')
+    print('fetched secret from SSM Parameter Store', secret)
 
     response = requests.get(fake_json_endpoint).json()
     print('fetched data from the internet:', response)

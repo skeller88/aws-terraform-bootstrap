@@ -3,13 +3,14 @@ resource "aws_lambda_function" "hello_world" {
     variables = {
       ENV              = "prod"
       WRITE_TO_AWS     = "True"
-      STORAGE_TYPE     = "${var.storage_type}"
-      PROD_DB_PASSWORD = "${var.prod_db_password}"
-      RDS_HOST         = "${var.rds_host}"
+      PROD_DB_PASSWORD = "${aws_db_instance.hello_world.password}"
+      RDS_HOST         = "${aws_db_instance.hello_world.address}"
 
       # Creates an implicit dependency on the hello_world s3 bucket
       # https://www.terraform.io/intro/getting-started/dependencies.html
       S3_BUCKET = "${aws_s3_bucket.hello_world.id}"
+
+      STORAGE_TYPE = "${var.storage_type}"
     }
   }
 
