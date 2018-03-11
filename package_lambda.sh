@@ -1,7 +1,6 @@
 #!/bin/bash
 # Based on script from http://jeremievallee.com/2017/03/26/aws-lambda-terraform/
 set -e
-source .app_bash_profile
 ZIPFILE_DIR="dist/lambdas"
 # Determines the zipfile name and the main ".py" file that gets zipped
 LAMBDA_NAME=$1

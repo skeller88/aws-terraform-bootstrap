@@ -141,7 +141,7 @@ Once setup is finished, deploy the lambda and bootstrap the infrastructure in on
 
 ```
 $ cd <aws-terraform-bootstrap-dir>
-$ ./deploy_lambda.sh hello_world
+$ ./package_lambda.sh hello_world && ./run_terraform.sh
 ```
 AWS has regions, and availability zones (AZs) within each region. [Due to AWS availability issues, a region
 may temporarily be unavailable](https://github.com/coreos/coreos-kubernetes/issues/442). If an AZ is unavailable,
@@ -235,7 +235,7 @@ for information on how this process works.
 Copy the environment variables in `.app_bash_profile.sample` to an `.app_bash_profile` file in this repo at the root
 directory, and modify them with the proper values for the local machine. `.app_bash_profile` is in the `.gitignore`
 file, which prevents it from being committed to version control so the secrets will be safe. `.app_bash_profile`
-is sourced as part of the `./deploy_lambda.sh` script, which means that its variables are injected into the 
+is sourced as part of the `./run_terraform.sh` script, which means that its variables are injected into the 
 environment. 
 
 Look at the "environment.variables" property of the lambda configurations in terraform/lambda.tf for an understanding of the 
