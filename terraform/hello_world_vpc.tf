@@ -43,50 +43,50 @@ resource "aws_db_subnet_group" "hello_world_db_subnet" {
 resource "aws_subnet" "hello_world_private_region_1_az_1" {
   availability_zone = "${var.region_1_az_1}"
 
+  cidr_block = "10.0.0.0/24"
+  vpc_id     = "${aws_vpc.hello_world.id}"
+
   tags {
     Project = "hello-world"
     Name    = "private ${var.region_1_az_1} subnet"
   }
-
-  cidr_block = "10.0.0.0/24"
-  vpc_id     = "${aws_vpc.hello_world.id}"
 }
 
 resource "aws_subnet" "hello_world_private_region_1_az_2" {
   availability_zone = "${var.region_1_az_2}"
 
+  cidr_block = "10.0.1.0/24"
+  vpc_id     = "${aws_vpc.hello_world.id}"
+
   tags {
     Name    = "private ${var.region_1_az_2} subnet"
     Project = "hello-world"
   }
-
-  cidr_block = "10.0.1.0/24"
-  vpc_id     = "${aws_vpc.hello_world.id}"
 }
 
 # Public
 resource "aws_subnet" "hello_world_public_region_1_az_1" {
   availability_zone = "${var.region_1_az_1}"
 
+  cidr_block = "10.0.2.0/24"
+  vpc_id     = "${aws_vpc.hello_world.id}"
+
   tags {
     Project = "hello-world"
     Name    = "public ${var.region_1_az_1} subnet"
   }
-
-  cidr_block = "10.0.2.0/24"
-  vpc_id     = "${aws_vpc.hello_world.id}"
 }
 
 resource "aws_subnet" "hello_world_public_region_1_az_2" {
   availability_zone = "${var.region_1_az_2}"
 
+  cidr_block = "10.0.3.0/24"
+  vpc_id     = "${aws_vpc.hello_world.id}"
+
   tags {
     Project = "hello-world"
     Name    = "public ${var.region_1_az_2} subnet"
   }
-
-  cidr_block = "10.0.3.0/24"
-  vpc_id     = "${aws_vpc.hello_world.id}"
 }
 
 output "default_vpc_id" {

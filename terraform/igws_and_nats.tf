@@ -14,28 +14,28 @@ resource "aws_internet_gateway" "hello_world" {
 }
 
 # NAT
-resource "aws_nat_gateway" "hello_world_private_west_1a" {
+resource "aws_nat_gateway" "hello_world_private_region_1_az_1" {
+  allocation_id = "${aws_eip.hello_world_private_region_1_az_1.id}"
+  subnet_id     = "${aws_subnet.hello_world_public_region_1_az_1.id}"
+  depends_on    = ["aws_internet_gateway.hello_world"]
+
   tags {
-    Name    = "private us-west-1b nat"
+    Name    = "private ${var.region_1_az_1} nat"
     ENV     = "prod"
     Project = "hello-world"
   }
-
-  allocation_id = "${aws_eip.hello_world_private_west_1a.id}"
-  subnet_id     = "${aws_subnet.hello_world_public_region_1_az_1.id}"
-  depends_on    = ["aws_internet_gateway.hello_world"]
 }
 
-resource "aws_nat_gateway" "hello_world_private_west_1b" {
+resource "aws_nat_gateway" "hello_world_private_region_1_az_2" {
+  allocation_id = "${aws_eip.hello_world_private_region_1_az_2.id}"
+  subnet_id     = "${aws_subnet.hello_world_public_region_1_az_1.id}"
+  depends_on    = ["aws_internet_gateway.hello_world"]
+
   tags {
-    Name    = "private us-west-1b nat"
+    Name    = "private ${var.region_1_az_2} nat"
     ENV     = "prod"
     Project = "hello-world"
   }
-
-  allocation_id = "${aws_eip.hello_world_private_west_1b.id}"
-  subnet_id     = "${aws_subnet.hello_world_public_region_1_az_1.id}"
-  depends_on    = ["aws_internet_gateway.hello_world"]
 }
 
 output "igw_id" {

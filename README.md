@@ -282,12 +282,18 @@ Nosetests is the testing framework used. A dummy test suite should show you the 
 in the `tests` folder via the command line or via Pycharm.
 
 # AWS setup
+
+## AWS Parameter Store
+Create a dummy app secret; any string will do. 
+
+Go to the [parameter store console](https://us-west-1.console.aws.amazon.com/systems-manager/parameters/) and add a new 
+parameter with the name 'secret'. Save it as a "SecureString". 
+
 ## IAMs
 ### App IAM user
 [Create an IAM user with more limited permissions for the app](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html),
-and use the user's credentials to locally run the app against AWS S3. Do not use your default/admin AWS credentials, because that user has root access, and using API keys for that user in the app
-makes it more likely that the keys will be compromised. Instead, 
-The user should have the following policies attached:
+and use the user's credentials to locally run the app against AWS S3 via the "smart_open" package in "s3.py". Do not use your default/admin AWS credentials, because that user has root access, and using API keys for that user in the app
+makes it more likely that the keys will be compromised. Instead, the user should have the following policies attached:
 - AmazonEC2FullAccess
 - AWSLambdaFullAccess
 - AmazonRDSFullAccess
@@ -313,6 +319,17 @@ and the user should also have the following inline policy, which gives it the ab
 }
 ```
 
+[Add the IAM user credentials to Boto](http://boto3.readthedocs.io/en/latest/guide/configuration.html) by creating a `~/.aws/credentials` file
+with the following format:
+```
+[hello_world]
+aws_access_key_id = <app-access-key-id>
+aws_secret_access_key = <app-secret-access-key>
+region=<desired-aws-region>
+```
+
+Create a parent `.aws` folder if necessary.
+
 ### Terraform IAM user
 [Set up Terraform](https://www.terraform.io/intro/getting-started/install.html)
 
@@ -334,18 +351,14 @@ $ terraform init
 $ popd
 ```
 
-## Boto
-[Set up boto](http://boto3.readthedocs.io/en/latest/guide/configuration.html) by creating a `~/.aws/credentials` file
-with the following format:
-```
-[hello_world]
-aws_access_key_id = <app-access-key-id>
-aws_secret_access_key = <app-secret-access-key>
-region=<desired-aws-region>
-```
+[Read this tutorial for more detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
 
-Create a parent `.aws` folder if necessary.
+# Package AWS lambda and deploy infrastructure with Terraform
+Run `terraform apply` to build the terraform infrastructure, and `terraform fmt` to standardize the formatting of .tf files. 
 
+`$ deploy_lambda.sh hello_world` builds a zipfile for the lambda function and runs `terraform apply`
+
+# Connect to AWS instances
 ## EC2 Key pair
 A key pair is needed in order to ssh into the bastion host from a local machine. [Create a new key pair](https://us-west-1.console.aws.amazon.com/ec2/v2/home?region=us-west-1#KeyPairs:sort=keyName) named 
 "bastion_host"  via the AWS console and the .pem file containing the private key will automatically be saved. Change 
@@ -354,12 +367,6 @@ the permissions of the .pem file to make sure that your private key file isn't p
 `$ chmod 400 bastion_host.pem`
 
 Move the .pem file to the `~/.aws` folder. AWS has [a more detailed explanation of key pairs.](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#retrieving-the-public-key)
-
-## AWS Parameter Store
-Create a dummy app secret; any string will do. 
-
-Go to the [parameter store console](https://us-west-1.console.aws.amazon.com/systems-manager/parameters/) and add a new 
-parameter with the name 'secret'. Save it as a "SecureString". 
 
 ## Remote access via bastion host
 ### ssh to bastion host
@@ -380,13 +387,6 @@ Then in another window, connect to the RDS instance, and see the data that's bee
 $ psql --dbname=hello_world --user=hellorole --host=localhost --port=8000
 select * from messages;
 ``` 
-
-[Read this tutorial for more detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
-
-# Package AWS lambda and deploy infrastructure with Terraform
-Run `terraform apply` to build the terraform infrastructure, and `terraform fmt` to standardize the formatting of .tf files. 
-
-`$ deploy_lambda.sh hello_world` builds a zipfile for the lambda function and runs `terraform apply`
 
 # Destroy infrastructure with Terraform
 Remove all of the infrastructure deployed via Terraform with a single command, ["terraform destroy"](https://www.terraform.io/intro/getting-started/destroy.html).

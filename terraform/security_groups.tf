@@ -15,13 +15,13 @@ resource "aws_security_group" "hello_world_lambda_vpc_security_group" {
     ]
   }
 
+  vpc_id = "${aws_vpc.hello_world.id}"
+
   tags {
     Name    = "hello-world-lambda-vpc-security-group"
     Env     = "prod"
     Project = "hello-world"
   }
-
-  vpc_id = "${aws_vpc.hello_world.id}"
 }
 
 # Assign this to instances that are bastion hosts and that will have access to the VPC via the "hello_world_vpc_inbound"
@@ -47,6 +47,12 @@ resource "aws_security_group" "hello_world_bastion_security_group" {
   }
 
   vpc_id = "${aws_vpc.hello_world.id}"
+
+  tags {
+    Name    = "hello_world_bastion_security_group"
+    Env     = "prod"
+    Project = "hello-world"
+  }
 }
 
 # Inbound connections allowed to the VPC
@@ -80,4 +86,10 @@ resource "aws_security_group" "hello_world_vpc_inbound" {
   }
 
   vpc_id = "${aws_vpc.hello_world.id}"
+
+  tags {
+    Name    = "hello_world_vpc_inbound"
+    Env     = "prod"
+    Project = "hello-world"
+  }
 }
