@@ -23,7 +23,7 @@ export AWS_PROFILE=hello_world
 # These variables are used to run the app locally.
 export LOCAL_DB_PASSWORD="archeological unhinge hormone rote"
 
-export RDS_HOST=terraform-20180306214317241900000001.cqzlzpcvfiqi.us-west-1.rds.amazonaws.com
+export RDS_HOST_ADDRESS=terraform-20180306214317241900000001.cqzlzpcvfiqi.us-west-1.rds.amazonaws.com
 
 export S3_BUCKET=hello-world-wvshijklrqp
 # If "True", run against AWS instances. Always set to "True" in the lambda environment variables, but can be set to

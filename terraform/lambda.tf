@@ -4,7 +4,7 @@ resource "aws_lambda_function" "hello_world" {
       ENV              = "prod"
       USE_AWS          = "True"
       PROD_DB_PASSWORD = "${aws_db_instance.hello_world.password}"
-      RDS_HOST         = "${aws_db_instance.hello_world.address}"
+      RDS_HOST_ADDRESS         = "${aws_db_instance.hello_world.address}"
 
       # Creates an implicit dependency on the hello_world s3 bucket
       # https://www.terraform.io/intro/getting-started/dependencies.html

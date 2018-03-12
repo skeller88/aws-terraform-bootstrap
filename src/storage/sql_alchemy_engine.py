@@ -58,7 +58,7 @@ class SqlAlchemyEngine:
     @classmethod
     def rds_engine(cls, **kwargs):
         return cls(dialect='postgres', driver='pg8000', username='hellorole',
-                   password=Properties.prod_db_password, host=Properties.rds_host, port=5432, database='hello_world',
+                   password=Properties.prod_db_password, host=Properties.rds_host_address, port=5432, database='hello_world',
                    **kwargs)
 
     @classmethod

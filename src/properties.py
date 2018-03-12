@@ -15,7 +15,7 @@ class Properties:
     use_aws = os.environ.get('USE_AWS') == 'True'
 
     ## postgres
-    rds_host = os.environ.get('RDS_HOST')
+    rds_host_address = os.environ.get('RDS_HOST_ADDRESS')
     # https://www.terraform.io/docs/configuration/environment-variables.html#tf_var_name
     prod_db_password = os.environ.get('PROD_DB_PASSWORD')
     local_db_password = os.environ.get('LOCAL_DB_PASSWORD')
