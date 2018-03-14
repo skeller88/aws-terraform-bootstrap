@@ -3,10 +3,10 @@ Table of Contents
 
    * [Table of Contents](#table-of-contents)
    * [Overview](#overview)
+   * [Purpose of this repo](#purpose-of-this-repo)
    * [Architecture](#architecture)
       * [Application](#application)
       * [Networking](#networking)
-   * [Motivations](#motivations)
    * [Why not just use a serverless framework?](#why-not-just-use-a-serverless-framework)
    * [Why Terraform?](#why-terraform)
    * [Deploy](#deploy)
@@ -59,12 +59,19 @@ At the end of this README, you will have done the following:
 * set up the app to run locally
 * set up your local machine to ssh into an EC2 [bastion host](https://www.techopedia.com/definition/6157/bastion-host), and connect to a RDS instance via psql. 
 
+# Purpose of this repo
+There are many blog posts, github repos, stack overflow posts, and AWS documentation that explain parts of how to build 
+and deploy AWS infrastructure with Terraform, but no repo I've found that puts all of the concepts I wanted together and makes it 
+quick and easy to set up an app on AWS and locally. I spent too much time reinventing the 
+wheel and doing DevOps work. This repo automates as much of that work as possible and provides clear documentation for 
+the rest of it.
+
 # Architecture
-![Architecture Diagram](architecture_diagram.jpg?raw=true)
 ## Application
-The app itself is simple. `hello_world_lambda.py` runs the function `hello_world.py`, which reads a parameter from Parameter Store, makes a HTTPS request to a [fake online REST API](https://jsonplaceholder.typicode.com/),
-and, depending on the environment variables, writes part of the response from the fake REST API to a csv file or Postgres, hosted
-either locally or on AWS. The csv file is either in a local directory:
+The app itself is simple. `hello_world_lambda.py` runs the function `hello_world.py`, which reads a parameter from SSM Parameter Store, 
+makes a HTTPS request to a [fake online REST API](https://jsonplaceholder.typicode.com/),
+and writes part of REST API response to a either a csv file or Postgres (depending on the environment variable), hosted
+either locally or on AWS (depending on the environment variable). The csv file is either in a local directory:
 
 `<aws-terraform-bootstrap-dir>/data/<timestamp>_message.csv>`
 
@@ -82,19 +89,18 @@ or a Postgres instance hosted on a RDS host:
 
 Details on connecting to the RDS Postgres instance are described later in this README.
 
-The lambda executes "hello_world.py". The purpose of this repo is not to make a complex app, but
-rather to automate the DevOps work necessary to deploy an app on AWS inside a VPC. 
-
 ## Networking
+![Architecture Diagram](architecture_diagram.jpg?raw=true)
+
 The above architecture diagram shows that the app is deployed in a VPC consisting of two private subnets and two public subnets across two
 availability zones, one public and one private subnet per availability zone (AZ). The lambda and RDS are deployed in a VPC 
-because RDS can only be deployed into a VPC, and so a lambda that accesses the RDS instance has to be in the same
-VPC. Also, deploying an instance into a VPC yields additional benefits such as the ability to change the security group
+because RDS can only be deployed into a VPC, and so a lambda that accesses the RDS instance has to either be in the same
+VPC or use [VPC peering](https://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide/Welcome.html). Also, deploying an instance into a VPC yields additional benefits such as the ability to change the security group
 of an instance while it's running. Read more in [AWS's VPC documentation](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Introduction.html) 
-about VPCs and AWS's migration away from their legacy EC2-Classic architecture.    
+about VPCs and AWS's migration from their legacy EC2-Classic architecture to VPCs.    
 
 The RDS instance is shown in one subnet only because it's a single AZ deployment. Multi-AZ deployments are higher cost, and unnecessary for a bootstrap app
-like this one. It's easy to configure though if an app needs that increased uptime. 
+like this one. It's easy to add multi-az support though if an app needs that increased uptime. 
 
 The lambda is shown in both private subnets because it can be run in either subnet. If one is available and one is down,
 for example, the lambda will be run in the subnet that is up. Since the lambda depends on the NAT for access to the
@@ -103,13 +109,6 @@ internet, there's one NAT in each AZ.
 There's only one bastion host because 1) that saves costs, and 2) uptime is not as important for a bastion host as it
 would be for the lambda. If the AZ containing the bastion host is down, it's less than a minute to use Terraform to add 
 a new bastion host to the other AZ. 
-
-# Motivations
-There are many blog posts, github repos, stack overflow posts, and AWS documentation that explain parts of how to build 
-and deploy AWS infrastructure with Terraform, but no repo I've found that puts all of the concepts I wanted together and makes it 
-quick and easy to set up an app on AWS and locally. I spent too much time reinventing the 
-wheel and doing DevOps work. This repo automates as much of that work as possible and provides clear documentation for 
-the rest of it.
 
 # Why not just use a serverless framework?
 [Cloud Formation](https://aws.amazon.com/cloudformation/) is AWS's framework for deploying serverless architectures. 
@@ -134,22 +133,25 @@ declarative, which means the end infrastructure state is specified, and Terrafor
 That means it's easy to add, change, and remove infrastructure. Gruntwork.io [has an excellent blog post](https://blog.gruntwork.io/why-we-use-terraform-and-not-chef-puppet-ansible-saltstack-or-cloudformation-7989dad2865c)
 that dives deeper into the benefits of Terraform compared with Cloud Formation, Puppet, and other tools.
 
+# Post setup 
+Once the directions in [Local setup](#local-setup) and [AWS setup](#aws-setup) are finished, deploy, run, and test the
+app.
 
-# Deploy
-Once setup is finished, deploy the lambda and bootstrap the infrastructure in one line:
+## Deploy
+# Package AWS lambda and deploy infrastructure with Terraform
+Deploy the lambda and bootstrap the infrastructure in one line:
 
 ```
 $ cd <aws-terraform-bootstrap-dir>
-$ ./package_lambda.sh hello_world && ./run_terraform.sh
+$ ./package_lambda.sh hello_world && source .app_bash_profile && ./run_terraform.sh
 ```
 AWS has regions, and availability zones (AZs) within each region. [Due to AWS availability issues, a region
 may temporarily be unavailable](https://github.com/coreos/coreos-kubernetes/issues/442). If an AZ is unavailable,
 change the Terraform variable representing that AZ, located in `terraform/vars.tf` and with a variable name like `region_1_az_1`,
 to an available AZ. For example, in "us-west-1" the available AZs are "a", "b", and "c". 
 
-# Run
-Once the directions in [Local setup](#local-setup) are finished, run the app locally. Make sure the "USE_AWS" environment variable
-is set to "False".
+## Run
+Run the app locally. Make sure the "USE_AWS" environment variableis set to "False".
 
 Run locally from the command line:
 ```
@@ -157,24 +159,24 @@ $ cd <aws-terraform-bootstrap-dir>
 $ source venv/bin/activate && source .app_bash_profile && python ./hello_world_lambda.py
 ```
 
-Run locally from Pycharm:
+or run locally from Pycharm:
 - Open "aws-terraform-bootstrap" repo
 - Right click on "hello_world.py" and select "Run 'hello_world'"
 
-Once the directions in [AWS setup](#aws-setup) are finished, run the app either on AWS:
+Run the app on AWS:
 - Navigate to the "hello_world" Lambda dashboard
-- Configure a test event with an empty dictionary
+- Configure a test event with an empty JSON object.
 - Click "Test" to run the test event and execute the lambda, and output will appear on the dashboard
 - Change the "storage_type" environment variable to either "csv" (write to S3) or "postgres" (write to RDS). 
 
-Or locally against the AWS SSM Parameter Store and  S3 bucket, by setting "USE_AWS" to "True" and running the app locally 
+The app can also be run locally against the AWS SSM Parameter Store and  S3 bucket, by setting "USE_AWS" to "True" and running the app  
 from the command line or from Pycharm. Note that it's not possible to run locally against the AWS RDS instance, because
 the RDS instance is located in a private subnet, and can only be accessed from outside the private subnet via the 
 EC2 bastion host. 
 
-# Tests
-Once the directions in [Local setup](#local-setup) and [AWS setup](#aws-setup) are finished, run `./run_tests.sh`, which
-will run the hello_world
+## Tests
+Run `./run_tests.sh`, which will run the `hello_world.py` method with various combinations of environment variables to validate that setup worked
+properly.
 
 # Local setup 
 ## Repo
@@ -235,15 +237,14 @@ Environment variables are used to run the app locally, and also to populate Terr
 See the [Terraform documentation](https://www.terraform.io/docs/configuration/variables.html#environment-variables)
 for information on how this process works. 
 
-Copy the environment variables in `.app_bash_profile.sample` to an `.app_bash_profile` file in this repo at the root
+Copy the environment variables in `.app_bash_profile.sample` to an `.app_bash_profile` file in this repo in the root
 directory, and modify them with the proper values for the local machine. `.app_bash_profile` is in the `.gitignore`
 file, which prevents it from being committed to version control so the secrets will be safe. `.app_bash_profile`
 is sourced as part of the `./run_terraform.sh` script, which means that its variables are injected into the 
 environment. 
 
-Look at the "environment.variables" property of the lambda configurations in terraform/lambda.tf for an understanding of the 
-variables used in production. Parameter store is used to populate other env variables not seen in the
-terraform configuration. 
+Look at the `environment.variables` property of the lambda configurations in `terraform/lambda.tf` for an understanding of the 
+variables used in production. 
 
 ## PostgreSQL
 Install Postgres [directly](https://www.postgresql.org/download/) or via [homebrew](https://brew.sh/):
@@ -259,26 +260,21 @@ and create a role, `hellorole`.
 CREATE ROLE hellorole WITH PASSWORD '<password>';
 ALTER ROLE hellorole CREATEDB; 
 ALTER ROLE hellorole WITH LOGIN;
+CREATE DATABASE hello_world OWNER hellorole;
 Press "ctrl + D" to exit
 ```
 Choose a different password from your superuser password. The reason you create a new role is so that your superuser 
 credentials are less likely to be compromised. 
 
-Create the database using the Terminal:
-
-`$ createdb hello_world`
-
-Connect to it with the new user to verify that the database has been created successfully. There will not be any 
+Connect to the database with the `hellorole` user to verify that the database has been created successfully. There will not be any 
 tables in the database:
 ```
 $ psql -U hellorole -d hello_world
 ```
-
-There is no table in the database yet. The app will populate the "messages" table when it is run.
+The app will populate the "messages" table when it is run.
 
 [Refer to this article on setting up PostgreSQL](https://www.codementor.io/engineerapart/getting-started-with-postgresql-on-mac-osx-are8jcopb)for 
-a more detailed explanation of the process. In order to perform additional actions from the command line, further
-permissions for the role may be needed.
+a more detailed explanation of the process.
 
 # AWS setup
 
@@ -352,11 +348,6 @@ $ popd
 
 [Read this tutorial for more detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
 
-# Package AWS lambda and deploy infrastructure with Terraform
-Run `terraform apply` to build the terraform infrastructure, and `terraform fmt` to standardize the formatting of .tf files. 
-
-`$ deploy_lambda.sh hello_world` builds a zipfile for the lambda function and runs `terraform apply`
-
 # Connect to AWS instances
 ## EC2 Key pair
 A key pair is needed in order to ssh into the bastion host from a local machine. [Create a new key pair](https://us-west-1.console.aws.amazon.com/ec2/v2/home?region=us-west-1#KeyPairs:sort=keyName) named 
@@ -395,6 +386,8 @@ Contributions to this repo are welcome.
 
 ## Planned
 A "hello world" Docker app, deployed in an ECS cluster.
+
+A lambda that runs in response to HTTP POST requests, and echoes the POST body back to the client.
 
 ## Backlog
 CI and CD process.
