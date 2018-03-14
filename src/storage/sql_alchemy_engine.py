@@ -56,13 +56,7 @@ class SqlAlchemyEngine:
         return Base.metadata.create_all(self.db_client)
 
     @classmethod
-    def rds_engine(cls, **kwargs):
+    def engine(cls, **kwargs):
         return cls(dialect='postgres', driver='pg8000', username='hellorole',
-                   password=Properties.prod_db_password, host=Properties.rds_host_address, port=5432, database='hello_world',
+                   password=Properties.db_password, host=Properties.db_host_address, port=5432, database='hello_world',
                    **kwargs)
-
-    @classmethod
-    def local_engine_maker(cls, **kwargs):
-        return cls(dialect='postgres', driver='pg8000', username='hello_role',
-                   password=Properties.local_db_password, host='localhost', port=5432,
-                   database='hello_world', **kwargs)

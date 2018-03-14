@@ -11,6 +11,7 @@ Table of Contents
    * [Why Terraform?](#why-terraform)
    * [Deploy](#deploy)
    * [Run](#run)
+   * [Tests](#tests)
    * [Local setup](#local-setup)
       * [Repo](#repo)
       * [Python environment](#python-environment)
@@ -19,19 +20,17 @@ Table of Contents
          * [Optional: Pycharm](#optional-pycharm)
       * [Environment variables](#environment-variables)
       * [PostgreSQL](#postgresql)
-      * [Optional: Testing](#optional-testing)
    * [AWS setup](#aws-setup)
+      * [AWS Parameter Store](#aws-parameter-store)
       * [IAMs](#iams)
          * [App IAM user](#app-iam-user)
          * [Terraform IAM user](#terraform-iam-user)
-      * [Boto](#boto)
+   * [Package AWS lambda and deploy infrastructure with Terraform](#package-aws-lambda-and-deploy-infrastructure-with-terraform)
+   * [Connect to AWS instances](#connect-to-aws-instances)
       * [EC2 Key pair](#ec2-key-pair)
-      * [AWS Parameter Store](#aws-parameter-store)
       * [Remote access via bastion host](#remote-access-via-bastion-host)
-         * [Add your local IP address to the allowed IP addresses of the VPC](#add-your-local-ip-address-to-the-allowed-ip-addresses-of-the-vpc)
          * [ssh to bastion host](#ssh-to-bastion-host)
          * [Create ssh tunnel to RDS instance](#create-ssh-tunnel-to-rds-instance)
-   * [Package AWS lambda and deploy infrastructure with Terraform](#package-aws-lambda-and-deploy-infrastructure-with-terraform)
    * [Destroy infrastructure with Terraform](#destroy-infrastructure-with-terraform)
    * [Future work](#future-work)
       * [Planned](#planned)
@@ -63,7 +62,7 @@ At the end of this README, you will have done the following:
 # Architecture
 ![Architecture Diagram](architecture_diagram.jpg?raw=true)
 ## Application
-The app itself is simple. "hello_world.py" reads a parameter from Parameter Store, makes a HTTPS request to a [fake online REST API](https://jsonplaceholder.typicode.com/),
+The app itself is simple. `hello_world_lambda.py` runs the function `hello_world.py`, which reads a parameter from Parameter Store, makes a HTTPS request to a [fake online REST API](https://jsonplaceholder.typicode.com/),
 and, depending on the environment variables, writes part of the response from the fake REST API to a csv file or Postgres, hosted
 either locally or on AWS. The csv file is either in a local directory:
 
@@ -155,7 +154,7 @@ is set to "False".
 Run locally from the command line:
 ```
 $ cd <aws-terraform-bootstrap-dir>
-$ source venv/bin/activate && source .app_bash_profile && python ./hello_world.py
+$ source venv/bin/activate && source .app_bash_profile && python ./hello_world_lambda.py
 ```
 
 Run locally from Pycharm:
@@ -172,6 +171,10 @@ Or locally against the AWS SSM Parameter Store and  S3 bucket, by setting "USE_A
 from the command line or from Pycharm. Note that it's not possible to run locally against the AWS RDS instance, because
 the RDS instance is located in a private subnet, and can only be accessed from outside the private subnet via the 
 EC2 bastion host. 
+
+# Tests
+Once the directions in [Local setup](#local-setup) and [AWS setup](#aws-setup) are finished, run `./run_tests.sh`, which
+will run the hello_world
 
 # Local setup 
 ## Repo
@@ -276,10 +279,6 @@ There is no table in the database yet. The app will populate the "messages" tabl
 [Refer to this article on setting up PostgreSQL](https://www.codementor.io/engineerapart/getting-started-with-postgresql-on-mac-osx-are8jcopb)for 
 a more detailed explanation of the process. In order to perform additional actions from the command line, further
 permissions for the role may be needed.
-
-## Optional: Testing
-Nosetests is the testing framework used. A dummy test suite should show you the gist of how Nosetests works. Run tests 
-in the `tests` folder via the command line or via Pycharm.
 
 # AWS setup
 

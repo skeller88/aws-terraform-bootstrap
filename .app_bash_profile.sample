@@ -1,4 +1,5 @@
 # Any variable prefixed with "TF_VAR" is a Terraform environment variable: https://www.terraform.io/docs/configuration/variables.html#environment-variables
+# See terraform/lambda.tf for the environment variables used in the production lambda.
 
 # The region in which AWS instances will be deployed.
 # If using a region different from "us-west-1", be aware certain links in the README to AWS services are linking
@@ -12,31 +13,30 @@ export TF_VAR_prod_db_password=tuba-flower-earthen-whale
 # lambda deployment package (.zip file)
 export TF_VAR_repo_dir=/Users/shanekeller/Documents/aws-terraform-bootstrap
 
-# The storage_type when running the "hello_world" app locally or via a lambda.
-# Change to "postgres" to use Postgres as the storage mechanism.
-export TF_VAR_storage_type=csv
-
 # Determines which AWS IAM credentials will be used by boto
 # https://stackoverflow.com/questions/11286479/recommended-way-to-manage-credentials-with-multiple-aws-accounts
 export AWS_PROFILE=hello_world
 
-# These variables are used to run the app locally.
-export LOCAL_DB_PASSWORD="archeological unhinge hormone rote"
-
-export RDS_HOST_ADDRESS=terraform-20180306214317241900000001.cqzlzpcvfiqi.us-west-1.rds.amazonaws.com
-
-export S3_BUCKET=hello-world-wvshijklrqp
 # If "True", run against AWS instances. Always set to "True" in the lambda environment variables, but can be set to
 # either "True" or "False" locally
 export USE_AWS=True
 
-# These variables are also used to run the app locally, but are duplicates of certain "TF_VAR"-prefixed variables, because
+# Database password. Set to your local database password if running locally.
+export DB_PASSWORD="archeological unhinge hormone rote"
+
+# AWS S3 bucket. Only necessary to set if STORAGE_TYPE='csv' and USE_AWS='True'. Find the AWS S3 bucket value by either
+# copying and pasting the output variable after running "terraform apply", or parsing the .tfstate file:
+# https://www.terraform.io/docs/commands/output.html. A more mature app would parse the .tfstate file and set this
+# variable automatically.
+export S3_BUCKET='hello-world-rrdglrhjzk'
+
+# The storage_type when running the "hello_world" app locally or via a lambda.
+# Change to "postgres" to use Postgres as the storage mechanism.
+export TF_VAR_storage_type=csv
+
+# The following variables are also used to run the app locally, but are duplicates of certain "TF_VAR"-prefixed variables, because
 # Terraform strips "TF_VAR" from the variables and then in terraform/lambda.tf, those variables are set as the lambda
 # environment variables. Locally, "TF_VAR" won't be stripped. It's ugly to have to duplicate these variables but that's
 # the solution for this app for now.
 
-# Matches "TF_VAR_prod_db_password"
-export PROD_DB_PASSWORD="tuba-flower-earthen-whale"
-
-# Matches "TF_VAR_storage_type"
-export STORAGE_TYPE=csv
+export STORAGE_TYPE=$TF_VAR_storage_type
