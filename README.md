@@ -25,6 +25,7 @@ Table of Contents
    * [Post setup](#post-setup)
       * [Deploy](#deploy)
       * [Run](#run)
+      * [Fetch objects from S3](#fetch-objects-from-s3)
       * [Tests](#tests)
       * [Destroy](#destroy)
    * [Connect to AWS instances](#connect-to-aws-instances)
@@ -345,6 +346,14 @@ The app can also be run locally against the AWS SSM Parameter Store and  S3 buck
 from the command line or from Pycharm. Note that it's not possible to run locally against the AWS RDS instance, because
 the RDS instance is located in a private subnet, and can only be accessed from outside the private subnet via the 
 EC2 bastion host. 
+
+## Fetch objects from S3
+After running the lambda at least once with `STORAGE_TYPE=csv`, data will have been written to the S3 bucket. Fetch the
+data using a script:
+
+```bash
+source .app_bash_profile && python ./read_bucket_objects.py $S3_BUCKET
+``` 
 
 ## Tests
 Run `./run_tests.sh`, which will run the `hello_world.py` method with various combinations of environment variables to validate that setup worked

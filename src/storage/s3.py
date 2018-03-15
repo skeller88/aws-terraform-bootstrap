@@ -43,3 +43,17 @@ def write_result(use_aws, s3_bucket, rows):
             writer.writerow(header)
             for row in rows:
                 writer.writerow(row)
+
+def read_bucket_objects(bucket_name):
+    """
+    Prints all objects in a S3 bucket.
+    Args:
+        bucket_name: name of the S3 bucket
+
+    """
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket_name)
+    for obj in bucket.objects.all():
+        response = obj.get()
+        body = response['Body'].read().decode('utf-8')
+        print(body)
