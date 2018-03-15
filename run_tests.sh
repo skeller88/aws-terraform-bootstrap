@@ -4,6 +4,7 @@
 # Nosetests doesn't have a straightforward way to modify environment variables in a test suite, so wrap the Nosetests
 # suite in a bash script.
 # https://stackoverflow.com/questions/27966420/nosetests-framework-how-to-pass-environment-variables-to-my-tests
+source venv/bin/activate
 source ./.app_bash_profile
 export USE_AWS='False'
 export STORAGE_TYPE='csv'

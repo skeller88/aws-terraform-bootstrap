@@ -21,6 +21,7 @@ then
     cp $SCRIPT_DIR/$ZIPFILE_DIR/$LAMBDA_NAME.zip $SCRIPT_DIR/$ZIPFILE_DIR/$LAMBDA_NAME.zip.backup
 fi
 
+cd $SCRIPT_DIR;
 zip -rg $SCRIPT_DIR/$ZIPFILE_DIR/$LAMBDA_NAME.zip $LAMBDA_NAME.py;
 
 cd $SCRIPT_DIR/venv/lib/python3.6/site-packages;

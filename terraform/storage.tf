@@ -43,10 +43,10 @@ output "s3_bucket_name" {
   value = "${aws_s3_bucket.hello_world.id}"
 }
 
-output "aws_db_instance_address" {
+output "rds_host_address" {
   value = "${aws_db_instance.hello_world.address}"
 }
 
-output "aws_db_id" {
+output "rds_instance_id" {
   value = "${aws_db_instance.hello_world.id}"
 }

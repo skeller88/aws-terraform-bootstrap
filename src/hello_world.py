@@ -13,6 +13,7 @@ from src.storage.sql_alchemy_engine import SqlAlchemyEngine
 fake_json_endpoint = 'https://jsonplaceholder.typicode.com/posts/1'
 dummy_secret = 'dummy_secret'
 
+
 def hello_world(event=None, context=None):
     """
     Reads a parameter from Parameter Store, makes a HTTPS request to a [fake online REST API](https://jsonplaceholder.typicode.com/),
@@ -48,14 +49,14 @@ def hello_world(event=None, context=None):
         secret = dummy_secret
 
     response = requests.get(fake_json_endpoint).json()
-    print('fetched message from the internet:', response)
+    print('fetched message from the internet', response['title'])
 
     if Properties.storage_type == 'csv':
         print("storage_type is 'csv'")
-        data = [
+        message_data = [
             [datetime.datetime.utcnow().timestamp(), response['title']]
         ]
-        write_result(Properties.use_aws, Properties.s3_bucket, data)
+        write_result(Properties.use_aws, Properties.s3_bucket, message_data)
     elif Properties.storage_type == 'postgres':
         print("storage_type is 'postgres'")
         engine = SqlAlchemyEngine.engine()
@@ -67,7 +68,9 @@ def hello_world(event=None, context=None):
     else:
         raise Exception('storage_type must be either "postgres" or "csv".')
 
-    return {
+    response = {
         'message': response['title'],
         'secret': secret
     }
+    print('hello_world response: ', response)
+    return response

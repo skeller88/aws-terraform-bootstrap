@@ -1,10 +1,10 @@
 resource "aws_lambda_function" "hello_world" {
   environment {
     variables = {
-      ENV              = "prod"
-      USE_AWS          = "True"
-      DB_PASSWORD = "${aws_db_instance.hello_world.password}"
-      DB_HOST_ADDRESS         = "${aws_db_instance.hello_world.address}"
+      ENV             = "prod"
+      USE_AWS         = "True"
+      DB_PASSWORD     = "${aws_db_instance.hello_world.password}"
+      DB_HOST_ADDRESS = "${aws_db_instance.hello_world.address}"
 
       # Creates an implicit dependency on the hello_world s3 bucket
       # https://www.terraform.io/intro/getting-started/dependencies.html
@@ -14,11 +14,11 @@ resource "aws_lambda_function" "hello_world" {
     }
   }
 
-  filename         = "${var.repo_dir}/dist/lambdas/hello_world.zip"
-  function_name    = "hello_world_lambda"
+  filename         = "${var.repo_dir}/dist/lambdas/hello_world_lambda.zip"
+  function_name    = "hello_world"
   role             = "${aws_iam_role.lambda_role.arn}"
   handler          = "hello_world_lambda.main"
-  source_code_hash = "${base64sha256(file("${var.repo_dir}/dist/lambdas/hello_world.zip"))}"
+  source_code_hash = "${base64sha256(file("${var.repo_dir}/dist/lambdas/hello_world_lambda.zip"))}"
   runtime          = "python3.6"
   timeout          = 5
 

@@ -9,11 +9,6 @@ Table of Contents
       * [Networking](#networking)
    * [Why not a serverless framework?](#why-not-a-serverless-framework)
    * [Why Terraform?](#why-terraform)
-   * [Post setup](#post-setup)
-      * [Deploy](#deploy)
-      * [Run](#run)
-      * [Tests](#tests)
-      * [Destroy](#destroy)
    * [Local setup](#local-setup)
       * [Repo](#repo)
       * [Python environment](#python-environment)
@@ -27,6 +22,11 @@ Table of Contents
       * [IAMs](#iams)
          * [App IAM user](#app-iam-user)
          * [Terraform IAM user](#terraform-iam-user)
+   * [Post setup](#post-setup)
+      * [Deploy](#deploy)
+      * [Run](#run)
+      * [Tests](#tests)
+      * [Destroy](#destroy)
    * [Connect to AWS instances](#connect-to-aws-instances)
       * [EC2 Key pair](#ec2-key-pair)
       * [Remote access via bastion host](#remote-access-via-bastion-host)
@@ -83,11 +83,7 @@ The Postgres database is either a local Postgres instance:
 
 `psql --dbname=hello_world --user=hellorole --host=localhost`
 
-or a Postgres instance hosted on a RDS host:
-
-`psql --dbname=<aws_db_instance_address> --user=hellorole --host=localhost --port=<port-of-connection-to-rds>`
-
-Details on connecting to the RDS Postgres instance are described later in this README.
+or a Postgres instance hosted on a RDS host. Details on connecting to the RDS Postgres instance are described later in this README.
 
 ## Networking
 ![Architecture Diagram](architecture_diagram.jpg?raw=true)
@@ -132,65 +128,6 @@ millions of users, including my former company. It can be used with any cloud co
 declarative, which means the end infrastructure state is specified, and Terraform figures out how to achieve that state.
 That means it's easy to add, change, and remove infrastructure. Gruntwork.io [has an excellent blog post](https://blog.gruntwork.io/why-we-use-terraform-and-not-chef-puppet-ansible-saltstack-or-cloudformation-7989dad2865c)
 that dives deeper into the benefits of Terraform compared with Cloud Formation, Puppet, and other tools.
-
-# Post setup 
-Once the directions in [Local setup](#local-setup) and [AWS setup](#aws-setup) are finished, deploy, run, and test the
-app. Destroy all the infrastructure at any time.
-
-## Deploy
-Deploy the lambda and bootstrap the infrastructure in one line:
-
-```bash
-cd <aws-terraform-bootstrap-dir>
-./package_lambda.sh hello_world && source .app_bash_profile && ./deploy_with_terraform.sh
-```
-
-Or, if the lambda is already built, redeploy/update the infrastructure:
-
-`source .app_bash_profile && ./deploy_with_terraform.sh`
-
-AWS has regions, and availability zones (AZs) within each region. [Due to AWS availability issues, a region
-may temporarily be unavailable](https://github.com/coreos/coreos-kubernetes/issues/442). If an AZ is unavailable,
-change the Terraform variable representing that AZ, located in `terraform/vars.tf` and with a variable name like `region_1_az_1`,
-to an available AZ. For example, in "us-west-1" the available AZs are "a", "b", and "c". 
-
-## Run
-Run the app locally. Make sure the "USE_AWS" environment variableis set to "False".
-
-Run locally from the command line:
-```bash
-cd <aws-terraform-bootstrap-dir>
-source venv/bin/activate && source .app_bash_profile && python ./hello_world_lambda.py
-```
-
-or run locally from Pycharm:
-- Open "aws-terraform-bootstrap" repo
-- Right click on "hello_world.py" and select "Run 'hello_world'"
-
-Run the app on AWS:
-- Navigate to the "hello_world" Lambda dashboard
-- Configure a test event with an empty JSON object.
-- Click "Test" to run the test event and execute the lambda, and output will appear on the dashboard
-- Change the "storage_type" environment variable to either "csv" (write to S3) or "postgres" (write to RDS). 
-
-The app can also be run locally against the AWS SSM Parameter Store and  S3 bucket, by setting "USE_AWS" to "True" and running the app  
-from the command line or from Pycharm. Note that it's not possible to run locally against the AWS RDS instance, because
-the RDS instance is located in a private subnet, and can only be accessed from outside the private subnet via the 
-EC2 bastion host. 
-
-## Tests
-Run `./run_tests.sh`, which will run the `hello_world.py` method with various combinations of environment variables to validate that setup worked
-properly.
-
-## Destroy
-To avoid AWS costs, when you're done playing with the repo, remove all of the infrastructure deployed via Terraform:
-
-```bash
-pushd terraform
-source venv/bin/activate && terraform destroy
-popd
-```
-
 
 # Local setup 
 ## Repo
@@ -362,7 +299,70 @@ popd
 
 [Read this tutorial for more detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
 
+# Post setup 
+Once the directions in [Local setup](#local-setup) and [AWS setup](#aws-setup) are finished, deploy, run, and test the
+app. Destroy all the infrastructure at any time.
+
+## Deploy
+Deploy the lambda and bootstrap the infrastructure in one line:
+
+```bash
+cd <aws-terraform-bootstrap-dir>
+./package_lambda.sh hello_world_lambda && ./deploy_with_terraform.sh
+```
+
+Or, if the lambda is already built, redeploy/update the infrastructure:
+
+```bash
+./deploy_with_terraform.sh
+```
+
+AWS has regions, and availability zones (AZs) within each region. [Due to AWS availability issues, a region
+may temporarily be unavailable](https://github.com/coreos/coreos-kubernetes/issues/442). If an AZ is unavailable,
+change the Terraform variable representing that AZ, located in `terraform/vars.tf` and with a variable name like `region_1_az_1`,
+to an available AZ. For example, in "us-west-1" the available AZs are "a", "b", and "c". 
+
+## Run
+Run the app locally. Make sure the "USE_AWS" environment variableis set to "False".
+
+Run locally from the command line:
+```bash
+cd <aws-terraform-bootstrap-dir>
+source venv/bin/activate && source .app_bash_profile && python ./hello_world_lambda.py
+```
+
+or run locally from Pycharm:
+- Open "aws-terraform-bootstrap" repo
+- Right click on "hello_world.py" and select "Run 'hello_world'"
+
+Run the app on AWS:
+- Navigate to the "hello_world" Lambda dashboard
+- Configure a test event with an empty JSON object.
+- Click "Test" to run the test event and execute the lambda, and output will appear on the dashboard
+- Change the "storage_type" environment variable to either "csv" (write to S3) or "postgres" (write to RDS). 
+
+The app can also be run locally against the AWS SSM Parameter Store and  S3 bucket, by setting "USE_AWS" to "True" and running the app  
+from the command line or from Pycharm. Note that it's not possible to run locally against the AWS RDS instance, because
+the RDS instance is located in a private subnet, and can only be accessed from outside the private subnet via the 
+EC2 bastion host. 
+
+## Tests
+Run `./run_tests.sh`, which will run the `hello_world.py` method with various combinations of environment variables to validate that setup worked
+properly.
+
+## Destroy
+To avoid AWS costs, when you're done playing with the repo, remove all of the infrastructure deployed via Terraform:
+
+```bash
+pushd terraform
+source .app_bash_profile && terraform destroy
+popd
+```
+
 # Connect to AWS instances
+Once the directions in [Local setup](#local-setup) and [AWS setup](#aws-setup) are finished, and [the app is deployed](#deploy),
+connect to the AWS bastion host and RDS host.
+
 ## EC2 Key pair
 A key pair is needed in order to ssh into the bastion host from a local machine. [Create a new key pair](https://us-west-1.console.aws.amazon.com/ec2/v2/home?region=us-west-1#KeyPairs:sort=keyName) named 
 "bastion_host"  via the AWS console and the .pem file containing the private key will automatically be saved. Change 
@@ -376,27 +376,26 @@ Move the .pem file to the `~/.aws` folder. AWS has [a more detailed explanation 
 
 ## Remote access via bastion host
 ### ssh to bastion host
-Before ssh'ing to the RDS instance, try ssh'ing to the bastion host. 
-`bastion_ec2_public_address` is output to the terminal by Terraform. Copy it and modify the script below:
+Before ssh'ing to the RDS instance, try ssh'ing to the bastion host. `bastion_ec2_public_ip` is output to the 
+terminal by Terraform after running `./deploy_with_terraform.sh`. Copy `bastion_ec2_public_ip` and modify the script below:
 ```bash
-ssh -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>
+ssh -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_ip>
 ```
 
 ### Create ssh tunnel to RDS instance
-After `terraform apply` runs in the terminal, the id of the bastion ec2 instance will be printed to sdout. Copy and
-paste the id into the script below. 
-
 In one terminal window, create the ssh tunnel:
 
 ```bash
-ssh -L 8000:<rds-host-address>:5432 -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>
+ssh -L 8000:<rds_host_address>:5432 -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_ip>
 ```
 
-Then in another window, connect to the RDS instance, and see the data that's been written by the lambda:
+Then in another window, connect to the RDS instance. The password for the instance is the value of the 
+`TF_VAR_prod_db_password` environment variable. 
 ```bash
 psql --dbname=hello_world --user=hellorole --host=localhost --port=8000
 ```
 
+and after the `hello_world` lambda has been run at least once, read the data that's been written to RDS by the lambda:
 ```postgres-sql
 select * from messages;
 ``` 

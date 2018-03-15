@@ -28,7 +28,7 @@ export DB_PASSWORD="archeological unhinge hormone rote"
 # copying and pasting the output variable after running "terraform apply", or parsing the .tfstate file:
 # https://www.terraform.io/docs/commands/output.html. A more mature app would parse the .tfstate file and set this
 # variable automatically.
-export S3_BUCKET='hello-world-rrdglrhjzk'
+export S3_BUCKET=hello-world-rrdglrhjzk
 
 # The storage_type when running the "hello_world" app locally or via a lambda.
 # Change to "postgres" to use Postgres as the storage mechanism.
