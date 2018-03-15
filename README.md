@@ -7,11 +7,13 @@ Table of Contents
    * [Architecture](#architecture)
       * [Application](#application)
       * [Networking](#networking)
-   * [Why not just use a serverless framework?](#why-not-just-use-a-serverless-framework)
+   * [Why not a serverless framework?](#why-not-a-serverless-framework)
    * [Why Terraform?](#why-terraform)
-   * [Deploy](#deploy)
-   * [Run](#run)
-   * [Tests](#tests)
+   * [Post setup](#post-setup)
+      * [Deploy](#deploy)
+      * [Run](#run)
+      * [Tests](#tests)
+      * [Destroy](#destroy)
    * [Local setup](#local-setup)
       * [Repo](#repo)
       * [Python environment](#python-environment)
@@ -25,13 +27,11 @@ Table of Contents
       * [IAMs](#iams)
          * [App IAM user](#app-iam-user)
          * [Terraform IAM user](#terraform-iam-user)
-   * [Package AWS lambda and deploy infrastructure with Terraform](#package-aws-lambda-and-deploy-infrastructure-with-terraform)
    * [Connect to AWS instances](#connect-to-aws-instances)
       * [EC2 Key pair](#ec2-key-pair)
       * [Remote access via bastion host](#remote-access-via-bastion-host)
          * [ssh to bastion host](#ssh-to-bastion-host)
          * [Create ssh tunnel to RDS instance](#create-ssh-tunnel-to-rds-instance)
-   * [Destroy infrastructure with Terraform](#destroy-infrastructure-with-terraform)
    * [Future work](#future-work)
       * [Planned](#planned)
       * [Backlog](#backlog)
@@ -81,11 +81,11 @@ or an AWS bucket:
 
 The Postgres database is either a local Postgres instance:
 
-`$ psql --dbname=hello_world --user=hellorole --host=localhost`
+`psql --dbname=hello_world --user=hellorole --host=localhost`
 
 or a Postgres instance hosted on a RDS host:
 
-`$ psql --dbname=<aws_db_instance_address> --user=hellorole --host=localhost --port=<port-of-connection-to-rds>`
+`psql --dbname=<aws_db_instance_address> --user=hellorole --host=localhost --port=<port-of-connection-to-rds>`
 
 Details on connecting to the RDS Postgres instance are described later in this README.
 
@@ -110,7 +110,7 @@ There's only one bastion host because 1) that saves costs, and 2) uptime is not 
 would be for the lambda. If the AZ containing the bastion host is down, it's less than a minute to use Terraform to add 
 a new bastion host to the other AZ. 
 
-# Why not just use a serverless framework?
+# Why not a serverless framework?
 [Cloud Formation](https://aws.amazon.com/cloudformation/) is AWS's framework for deploying serverless architectures. 
 Like Terraform, it enables developers to write infrastructure as code. In addition, it abstracts away DevOps tasks such 
 as lambda packaging, deployment, and monitoring. [Apex](https://github.com/apex/apex) is [TJ Holowaychuk's](https://medium.com/@tjholowaychuk) version of CF.
@@ -135,16 +135,20 @@ that dives deeper into the benefits of Terraform compared with Cloud Formation, 
 
 # Post setup 
 Once the directions in [Local setup](#local-setup) and [AWS setup](#aws-setup) are finished, deploy, run, and test the
-app.
+app. Destroy all the infrastructure at any time.
 
 ## Deploy
-# Package AWS lambda and deploy infrastructure with Terraform
 Deploy the lambda and bootstrap the infrastructure in one line:
 
+```bash
+cd <aws-terraform-bootstrap-dir>
+./package_lambda.sh hello_world && source .app_bash_profile && ./deploy_with_terraform.sh
 ```
-$ cd <aws-terraform-bootstrap-dir>
-$ ./package_lambda.sh hello_world && source .app_bash_profile && ./run_terraform.sh
-```
+
+Or, if the lambda is already built, redeploy/update the infrastructure:
+
+`source .app_bash_profile && ./deploy_with_terraform.sh`
+
 AWS has regions, and availability zones (AZs) within each region. [Due to AWS availability issues, a region
 may temporarily be unavailable](https://github.com/coreos/coreos-kubernetes/issues/442). If an AZ is unavailable,
 change the Terraform variable representing that AZ, located in `terraform/vars.tf` and with a variable name like `region_1_az_1`,
@@ -154,9 +158,9 @@ to an available AZ. For example, in "us-west-1" the available AZs are "a", "b", 
 Run the app locally. Make sure the "USE_AWS" environment variableis set to "False".
 
 Run locally from the command line:
-```
-$ cd <aws-terraform-bootstrap-dir>
-$ source venv/bin/activate && source .app_bash_profile && python ./hello_world_lambda.py
+```bash
+cd <aws-terraform-bootstrap-dir>
+source venv/bin/activate && source .app_bash_profile && python ./hello_world_lambda.py
 ```
 
 or run locally from Pycharm:
@@ -178,38 +182,49 @@ EC2 bastion host.
 Run `./run_tests.sh`, which will run the `hello_world.py` method with various combinations of environment variables to validate that setup worked
 properly.
 
+## Destroy
+To avoid AWS costs, when you're done playing with the repo, remove all of the infrastructure deployed via Terraform:
+
+```bash
+pushd terraform
+source venv/bin/activate && terraform destroy
+popd
+```
+
+
 # Local setup 
 ## Repo
-`$ git clone https://github.com/skeller88/aws-terraform-bootstrap.git`
+`git clone https://github.com/skeller88/aws-terraform-bootstrap.git`
 
 ## Python environment
 Install Python 3.6, either [directly](https://www.python.org/downloads/release/python-363/) or via [homebrew](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-macos)
 
 Then create the virtual environment. Virtual environments keep the app environment isolated from the OS environment. 
 
-```
-$ cd <aws-terraform-bootstrap-dir>
-$ python3 -m venv venv
-$ source venv/bin/activate
+```bash
+cd <aws-terraform-bootstrap-dir>
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 Depending on your OS and python version, an error may occur [due to a bug in pyvenv](https://askubuntu.com/questions/488529/pyvenv-3-4-error-returned-non-zero-exit-status-1). 
 If that happens, install pip after creating the venv:
 
-```
-$ cd <aws-terraform-bootstrap-dir>
-$ python3 -m venv venv --without-pip
-$ source venv/bin/activate
-$ curl https://bootstrap.pypa.io/get-pip.py | python
-$ deactivate
-$ source venv/bin/activate
+```bash
+cd <aws-terraform-bootstrap-dir>
+python3 -m venv venv --without-pip
+source venv/bin/activate
+curl https://bootstrap.pypa.io/get-pip.py | python
+deactivate
+source venv/bin/activate
 ```
 
+
 ### Install dependencies
-```
+```bash
 # Make sure the virtual environment for the app has been activated
-$ source venv/bin/activate
-$ pip install -r requirements.txt
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ### Optional: Ipython notebooks
@@ -220,7 +235,7 @@ environment is configured via an environment.yml file.
 
 [Create the "hello_world" environment from the environment.yml file](https://conda.io/docs/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file):
 
-`$ conda env create -f environment.yml`
+`conda env create -f environment.yml`
 
 Start the Anaconda application and select the "hello_world" environment.
 
@@ -240,7 +255,7 @@ for information on how this process works.
 Copy the environment variables in `.app_bash_profile.sample` to an `.app_bash_profile` file in this repo in the root
 directory, and modify them with the proper values for the local machine. `.app_bash_profile` is in the `.gitignore`
 file, which prevents it from being committed to version control so the secrets will be safe. `.app_bash_profile`
-is sourced as part of the `./run_terraform.sh` script, which means that its variables are injected into the 
+is sourced as part of the `./deploy_with_terraform.sh` script, which means that its variables are injected into the 
 environment. 
 
 Look at the `environment.variables` property of the lambda configurations in `terraform/lambda.tf` for an understanding of the 
@@ -252,24 +267,23 @@ Install Postgres [directly](https://www.postgresql.org/download/) or via [homebr
 
 Using the Terminal, login to Postgres via superuser:
 
-`$ psql postgres`
+`psql postgres`
  
 and create a role, `hellorole`.
  
-```
+```postgres-sql
 CREATE ROLE hellorole WITH PASSWORD '<password>';
 ALTER ROLE hellorole CREATEDB; 
 ALTER ROLE hellorole WITH LOGIN;
 CREATE DATABASE hello_world OWNER hellorole;
-Press "ctrl + D" to exit
 ```
 Choose a different password from your superuser password. The reason you create a new role is so that your superuser 
 credentials are less likely to be compromised. 
 
 Connect to the database with the `hellorole` user to verify that the database has been created successfully. There will not be any 
 tables in the database:
-```
-$ psql -U hellorole -d hello_world
+```bash
+psql -U hellorole -d hello_world
 ```
 The app will populate the "messages" table when it is run.
 
@@ -296,7 +310,7 @@ makes it more likely that the keys will be compromised. Instead, the user should
 - AmazonSSMFullAccess
 
 and the user should also have the following inline policy, which gives it the ability to manage IAM roles.
-```
+```json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -316,7 +330,7 @@ and the user should also have the following inline policy, which gives it the ab
 
 [Add the IAM user credentials to Boto](http://boto3.readthedocs.io/en/latest/guide/configuration.html) by creating a `~/.aws/credentials` file
 with the following format:
-```
+```bash
 [hello_world]
 aws_access_key_id = <app-access-key-id>
 aws_secret_access_key = <app-secret-access-key>
@@ -333,17 +347,17 @@ The Terraform user should have the same policies attached as the app user. Note 
 instead of the app IAM user, but it's best to have clear separation of responsibilities across IAMs. 
 
 Add the secret and key created for the Terraform IAM user to the `~/.aws/credentials` file:
-```
+```bash
 [terraform]
 aws_access_key_id = <terraform-access-key-id>
 aws_secret_access_key = <terraform-admin-access-secret>
 ```
 
 Initialize Terraform:
-```
-$ pushd terraform
-$ terraform init
-$ popd
+```bash
+pushd terraform
+terraform init
+popd
 ```
 
 [Read this tutorial for more detailed instructions](https://userify.com/blog/howto-connect-mysql-ec2-ssh-tunnel-rds/)
@@ -354,7 +368,9 @@ A key pair is needed in order to ssh into the bastion host from a local machine.
 "bastion_host"  via the AWS console and the .pem file containing the private key will automatically be saved. Change 
 the permissions of the .pem file to make sure that your private key file isn't publicly viewable:
 
-`$ chmod 400 bastion_host.pem`
+```bash
+chmod 400 bastion_host.pem
+```
 
 Move the .pem file to the `~/.aws` folder. AWS has [a more detailed explanation of key pairs.](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#retrieving-the-public-key)
 
@@ -362,7 +378,9 @@ Move the .pem file to the `~/.aws` folder. AWS has [a more detailed explanation 
 ### ssh to bastion host
 Before ssh'ing to the RDS instance, try ssh'ing to the bastion host. 
 `bastion_ec2_public_address` is output to the terminal by Terraform. Copy it and modify the script below:
-`$ ssh -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
+```bash
+ssh -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>
+```
 
 ### Create ssh tunnel to RDS instance
 After `terraform apply` runs in the terminal, the id of the bastion ec2 instance will be printed to sdout. Copy and
@@ -370,16 +388,18 @@ paste the id into the script below.
 
 In one terminal window, create the ssh tunnel:
 
-`$ ssh -L 8000:<rds-host-address>:5432 -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>`
+```bash
+ssh -L 8000:<rds-host-address>:5432 -i ~/.aws/bastion_host.pem ec2-user@<bastion_ec2_public_address>
+```
 
 Then in another window, connect to the RDS instance, and see the data that's been written by the lambda:
+```bash
+psql --dbname=hello_world --user=hellorole --host=localhost --port=8000
 ```
-$ psql --dbname=hello_world --user=hellorole --host=localhost --port=8000
+
+```postgres-sql
 select * from messages;
 ``` 
-
-# Destroy infrastructure with Terraform
-Remove all of the infrastructure deployed via Terraform with a single command, ["terraform destroy"](https://www.terraform.io/intro/getting-started/destroy.html).
 
 # Future work 
 Contributions to this repo are welcome. 
