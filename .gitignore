@@ -4,7 +4,6 @@ data/
 *.csv
 
 # Deployment
-dist/lambdas/*.zip
 
 # Intellij
 *.idea
@@ -38,6 +37,7 @@ env/
 *venv*/
 build/
 develop-eggs/
+dist/
 downloads/
 eggs/
 .eggs/

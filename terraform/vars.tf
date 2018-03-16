@@ -15,6 +15,7 @@ variable "region_1_az_2" {
 }
 
 # Set via environment variables
+# should be the same region as the region in the "region_*_az_*" variables
 variable "aws_region" {}
 
 variable "prod_db_password" {}

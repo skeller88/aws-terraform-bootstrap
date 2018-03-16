@@ -425,6 +425,8 @@ Logging, monitoring, alerting via AWS or some third party tool.
 At a certain size, lambda deployment packages have to be uploaded to a S3 bucket before deployment. Add support for that.
 
 Configure the lambda to run in response to a HTTP GET or POST, and echo back request parameters.
+
+[Multi-factor authentication to access the EC2 bastion host.](https://aws.amazon.com/blogs/startups/securing-ssh-to-amazon-ec2-linux-hosts/)
  
 Increase the availability of the architecture by adding duplicate services to additional availability zones. For example, there's only one NAT in one AZ.
  

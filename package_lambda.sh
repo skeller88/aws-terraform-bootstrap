@@ -2,6 +2,7 @@
 # Based on script from http://jeremievallee.com/2017/03/26/aws-lambda-terraform/
 set -e
 ZIPFILE_DIR="dist/lambdas"
+mkdir -p $ZIPFILE_DIR
 # Determines the zipfile name and the main ".py" file that gets zipped
 LAMBDA_NAME=$1
 echo $LAMBDA_NAME

@@ -14,7 +14,7 @@ class HelloWorldTest(unittest.TestCase):
     Either run this test via pycharm,
 
     via the command line:
-    nosetests test/test_hello_world.py --nocapture
+    source venv/bin/activate && nosetests test/test_hello_world.py --nocapture
 
     or via a bash script which runs this test multiple times with different combinations of environment variables:
 
