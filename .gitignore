@@ -4,7 +4,7 @@ data/
 *.csv
 
 # Deployment
-dist/lambdas/**
+dist/lambdas/*.zip
 
 # Intellij
 *.idea
