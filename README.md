@@ -324,7 +324,7 @@ change the Terraform variable representing that AZ, located in `terraform/vars.t
 to an available AZ. For example, in "us-west-1" the available AZs are "a", "b", and "c". 
 
 ## Run
-Run the app locally. Make sure the "USE_AWS" environment variableis set to "False".
+Run the app locally. Make sure the "USE_AWS" environment variable is set to "False".
 
 Run locally from the command line:
 ```bash
